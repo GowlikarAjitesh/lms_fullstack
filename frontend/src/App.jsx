@@ -27,6 +27,7 @@ import AddNewCoursePage from "@/pages/instructor/AddNewCoursePage";
 // Common
 import NotFoundPage from "@/pages/NotFoundPage";
 import { Toaster } from "sonner";
+import CourseDetailsPage from "./pages/student/CourseDetailsPage";
 
 function App() {
   const auth = useContext(AuthContext);
@@ -65,6 +66,7 @@ function App() {
               <Route index element={<Home />} />
               <Route path="explore-courses" element={<ExploreCoursesPage/>}/>
               <Route path="my-courses" element={<MyCoursesPages/>}/>
+              <Route path="course/details/:id" element={<CourseDetailsPage/>}/>
 
             </Route>
 

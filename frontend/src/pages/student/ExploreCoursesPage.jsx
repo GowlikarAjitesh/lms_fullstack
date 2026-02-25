@@ -16,7 +16,8 @@ import { getAllCoursesToStudentService } from "@/service";
 import StudentContext from "@/context/student-context";
 import { Dot, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { createSearchParams, useSearchParams } from "react-router-dom";
+import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -30,6 +31,7 @@ function createSearchParamsHelper(filterParams) {
 }
 
 export default function ExploreCoursesPage() {
+  const navigate = useNavigate();
   const [filteredStudentsCoursesList, setFilteredStudentsCoursesList] =
     useState([]);
   const [sort, setSort] = useState("price-lowToHigh");
@@ -41,7 +43,7 @@ export default function ExploreCoursesPage() {
   }
 });
   const [searchParams, setSearchParams] = useSearchParams();
-  const { studentCoursesList, setStudentCoursesList } =
+  const { studentCoursesList, setStudentCoursesList, globalLoadingState, setGlobalLoadingState } =
     useContext(StudentContext);
 
   function handleFilterChange(getSectionId, getCurrentOption) {
@@ -79,6 +81,7 @@ export default function ExploreCoursesPage() {
     if (coursesList.success) {
       setStudentCoursesList(coursesList?.data);
       setFilteredStudentsCoursesList(coursesList?.data);
+      setGlobalLoadingState(false);
     }
   }
 // async function fetchCoursesList(currentFilters, currentSort) {
@@ -114,6 +117,7 @@ export default function ExploreCoursesPage() {
   }, [filters, sort]);
 
   console.log("Filters = ", filters);
+  console.log("coursesList = ", studentCoursesList);
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Page Wrapper */}
@@ -217,6 +221,7 @@ export default function ExploreCoursesPage() {
               {filteredStudentsCoursesList?.length > 0 ? (
                 filteredStudentsCoursesList.map((studentCourse) => (
                   <Card
+                    onClick={()=>navigate(`/course/details/${studentCourse._id}`)}
                     key={studentCourse._id}
                     className="flex flex-col md:flex-row overflow-hidden border border-border bg-card rounded-xl hover:shadow-lg transition-shadow duration-300 items-center justify-around cursor-pointer"
                   >
@@ -277,7 +282,7 @@ export default function ExploreCoursesPage() {
                     </CardContent>
                   </Card>
                 ))
-              ) : (
+              ) : globalLoadingState ? (<Skeleton/>) : (
                 <div className="text-sm text-muted-foreground py-10 text-center">
                   No courses found
                 </div>
