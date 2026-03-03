@@ -104,7 +104,7 @@ export default function CourseDetailsPage() {
           </span>
           <span>
             Created On{" "}
-            {currentCourseDetails?.createdAt.toLocaleString().split("T")[0]}
+            {currentCourseDetails?.createdAt?.toLocaleString().split("T")[0]}
           </span>
           <span className="flex items-center">
             <Globe className="h-4 w-4 mr-1" />
@@ -178,7 +178,7 @@ export default function CourseDetailsPage() {
           </Card>
         </main>
 
-        <aside className="w-full md:w-250">
+        <aside className="w-full md:w-125">
           <Card className="sticky top-4">
             <CardContent className="p-6 flex flex-col">
               <div className="aspect-video mb-4 rounded-lg flex items-center justify-center">
