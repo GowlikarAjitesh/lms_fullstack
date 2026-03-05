@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
-const LectureSchema = mongoose.Schema({
+const LectureSchema = new mongoose.Schema({
   title: String,
   videoUrl: String,
   freePreview: Boolean,
   public_id: String,
 });
-const CourseSchema = mongoose.Schema(
+const CourseSchema = new mongoose.Schema(
   {
     instructor: {
       instructorId: String,
