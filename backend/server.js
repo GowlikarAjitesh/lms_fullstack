@@ -7,6 +7,7 @@ const userRoutes = require('./routes/user-routes');
 const instructorRoutes = require('./routes/instructor-course-routes');
 const instructorMediaRoutes = require('./routes/instructor-media-routes');
 const studentCourseRoutes = require('./routes/student-course-route');
+const studentOrderRoutes = require('./routes/order-routes');
 
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/instructor/course', instructorRoutes);
 app.use('/api/instructor/media', instructorMediaRoutes);
 app.use('/api/student/course', studentCourseRoutes);
+app.use('/api/student/order', studentOrderRoutes);
 
 //gloabal error handling
 app.use((err, req, res, next) => {

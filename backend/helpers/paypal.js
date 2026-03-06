@@ -1,4 +1,4 @@
-const paypal = require('@paypal/paypal-server-sdk');
+const paypal = require("paypal-rest-sdk");
 
 paypal.configure({
     mode: 'sandbox',

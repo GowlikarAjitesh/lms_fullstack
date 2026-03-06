@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import StudentContext from "@/context/student-context";
-import { getSingleCourseToStudentService } from "@/service";
+import { createPaymentService, getSingleCourseToStudentService } from "@/service";
 import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
+import AuthContext from "@/context/auth-context";
 
 export default function CourseDetailsPage() {
   const {
@@ -31,9 +32,11 @@ export default function CourseDetailsPage() {
     globalLoadingState,
     setGlobalLoadingState,
   } = useContext(StudentContext);
+  const {isAuth, userDetails} = useContext(AuthContext);
   const [freePreviewLecturesList, setFreePreviewLecturesList] = useState([]);
   const [freePreviewDetailsDialog, setFreePreviewDetailsDialog] = useState({});
   const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
+  const [approvalUrl, setApprovalUrl] = useState('');
   const { id } = useParams();
   const location = useLocation();
 
@@ -55,6 +58,33 @@ export default function CourseDetailsPage() {
 
     setGlobalLoadingState(false);
   }
+
+  async function handleCreatePayment(){
+    const paymentPayload = {
+      userId: userDetails?.id,
+      userName: userDetails?.username,
+      userEmail: userDetails?.email,
+      orderStatus: 'pending',
+      orderDate: new Date(),
+      paymentId:'',
+      paymentMethod: 'paypal',
+      paymentStatus: 'initiated',
+      payerId: '',
+      instructorName: currentCourseDetails?.instructor?.instructorName,
+      instructorId: currentCourseDetails?.instructor?.instructorId,
+      courseId: currentCourseDetails?._id,
+      courseTitle: currentCourseDetails?.title,
+      courseImage: currentCourseDetails?.image,
+      coursePricing: currentCourseDetails?.pricing,
+    }
+    console.log("Payment Payload = ", paymentPayload);
+    const result = await createPaymentService(paymentPayload);
+    if(result?.success){
+      sessionStorage.setItem('currentOrderId', JSON.stringify(result?.data.orderId));
+      setApprovalUrl(result?.data?.approvalUrl);
+    }
+  }
+
 
   useEffect(() => {
     if (id) setCurrentCourseId(id);
@@ -79,7 +109,6 @@ export default function CourseDetailsPage() {
     );
   }, [currentCourseDetails]);
 
-  if (globalLoadingState) return <Skeleton className="h-screen w-full" />;
   console.log(currentCourseDetails, "currentCourseDetails");
   console.log(freePreviewLecturesList, "lectureList");
 
@@ -89,6 +118,19 @@ export default function CourseDetailsPage() {
       : -1;
 
   console.log(getIndexOfFreePreviewUrl, "url");
+
+
+
+
+  if (globalLoadingState) return <Skeleton className="h-screen w-full" />;
+
+
+
+  if(approvalUrl != ""){
+    console.log("approval URL = ", approvalUrl);
+    window.location.href = approvalUrl;
+  }
+
   return (
     <div className="container mx-auto p-4">
       <div className="bg-gray-900 text-white p-8 rounded-t-lg">
@@ -137,8 +179,8 @@ export default function CourseDetailsPage() {
             <CardContent>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {currentCourseDetails?.objectives
-                  .split(",")
-                  .map((objectiveItem, index) => (
+                  ?.split(",")
+                  ?.map((objectiveItem, index) => (
                     <li key={index} className="flex flex-row items-center">
                       <CheckCircle className="mr-2 h-5 w-5 text-green-500 shrink-0" />
                       <span>{objectiveItem}</span>
@@ -193,10 +235,10 @@ export default function CourseDetailsPage() {
                 />
               </div>
               <span className="text-3xl font-bold mb-4">
-                {"₹"}
+                {"$"}
                 {currentCourseDetails?.pricing}
               </span>
-              <Button>BUY NOW</Button>
+              <Button onClick={handleCreatePayment}>BUY NOW</Button>
             </CardContent>
           </Card>
         </aside>

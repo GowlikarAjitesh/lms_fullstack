@@ -277,7 +277,7 @@ export default function ExploreCoursesPage() {
 
                       {/* Pricing */}
                       <div className="text-lg font-semibold text-primary">
-                        ₹{studentCourse.pricing}
+                        ${studentCourse.pricing}
                       </div>
                     </CardContent>
                   </Card>

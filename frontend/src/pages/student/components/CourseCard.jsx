@@ -54,7 +54,7 @@ export default function CourseCard({
           {/* Current Price */}
           <span className="flex items-center gap-1 font-bold text-lg leading-none">
             {/* <IndianRupee className="w-4 h-4 shrink-0 translate-y-px font-bold" /> */}
-            <span>₹{price}</span>
+            <span>${price}</span>
           </span>
 
           {/* Original Price */}
@@ -62,7 +62,7 @@ export default function CourseCard({
             <span className="flex items-center text-sm text-muted-foreground line-through leading-none relative">
               {/* <span className="absolute left-0 right-0 top-1/2 h-px bg-muted-foreground"></span>
               <IndianRupee className="w-4 h-4 shrink-0 translate-y-px" /> */}
-              <span >₹{originalPrice}</span>
+              <span >${originalPrice}</span>
             </span>
           )}
         </div>

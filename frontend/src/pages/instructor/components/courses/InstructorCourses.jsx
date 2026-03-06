@@ -34,6 +34,7 @@ export default function InstructorCourses() {
   async function fetchAllCourses() {
     const coursesList = await getAllCoursesService();
     if (coursesList?.success) {
+      console.log("Courses list from instructorCourses Page: ", coursesList);
       setInstructorCoursesList(coursesList.data);
     } else {
       toast.error(coursesList.message);
