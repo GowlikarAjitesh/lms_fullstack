@@ -1,14 +1,16 @@
 const mongoose = require("mongoose");
 const StudentCourseSchema = new mongoose.Schema({
   userId: String,
-  course: [
+  userName: String,
+  courses: [
     {
       courseId: String,
       title: String,
       instructorId: String,
-      insturctorName: String,
+      instructorName: String,
       dateOfPurchase: Date,
       courseImage: String,
+      progress: Number,
     },
   ],
 });

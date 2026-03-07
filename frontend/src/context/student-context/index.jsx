@@ -8,8 +8,9 @@ export function StudentProvider({children}) {
     const [globalLoadingState, setGlobalLoadingState] = useState(true);
     const [currentCourseDetails, setcurrentCourseDetails] = useState({});
     const [currentCourseId, setCurrentCourseId] = useState('');
+    const [studentBoughtCoursesList, setStudentBoughtCoursesList] = useState([]);
 
   return (
-    <StudentContext.Provider value={{studentCoursesList, setStudentCoursesList, globalLoadingState, setGlobalLoadingState, currentCourseDetails, setcurrentCourseDetails, currentCourseId, setCurrentCourseId}}>{children}</StudentContext.Provider>
+    <StudentContext.Provider value={{studentCoursesList, setStudentCoursesList, globalLoadingState, setGlobalLoadingState, currentCourseDetails, setcurrentCourseDetails, currentCourseId, setCurrentCourseId, studentBoughtCoursesList, setStudentBoughtCoursesList}}>{children}</StudentContext.Provider>
   )
 }

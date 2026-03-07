@@ -77,3 +77,9 @@ export async function captureAndFinalizePaymentService(formData){
   return data;
 
 }
+
+export async function getStudentBoughtCoursesService(studentId){
+  const {data} = await axiosInstance.get(`/api/student/courses-bought/get/${studentId}`);
+  return data;
+
+}

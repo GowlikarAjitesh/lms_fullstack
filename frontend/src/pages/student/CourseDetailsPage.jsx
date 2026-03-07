@@ -1,7 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import StudentContext from "@/context/student-context";
-import { createPaymentService, getSingleCourseToStudentService } from "@/service";
+import {
+  createPaymentService,
+  getSingleCourseToStudentService,
+} from "@/service";
 import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
@@ -32,11 +35,11 @@ export default function CourseDetailsPage() {
     globalLoadingState,
     setGlobalLoadingState,
   } = useContext(StudentContext);
-  const {isAuth, userDetails} = useContext(AuthContext);
+  const { isAuth, userDetails } = useContext(AuthContext);
   const [freePreviewLecturesList, setFreePreviewLecturesList] = useState([]);
   const [freePreviewDetailsDialog, setFreePreviewDetailsDialog] = useState({});
   const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
-  const [approvalUrl, setApprovalUrl] = useState('');
+  const [approvalUrl, setApprovalUrl] = useState("");
   const { id } = useParams();
   const location = useLocation();
 
@@ -59,32 +62,34 @@ export default function CourseDetailsPage() {
     setGlobalLoadingState(false);
   }
 
-  async function handleCreatePayment(){
+  async function handleCreatePayment() {
     const paymentPayload = {
       userId: userDetails?.id,
       userName: userDetails?.username,
       userEmail: userDetails?.email,
-      orderStatus: 'pending',
+      orderStatus: "pending",
       orderDate: new Date(),
-      paymentId:'',
-      paymentMethod: 'paypal',
-      paymentStatus: 'initiated',
-      payerId: '',
+      paymentId: "",
+      paymentMethod: "paypal",
+      paymentStatus: "initiated",
+      payerId: "",
       instructorName: currentCourseDetails?.instructor?.instructorName,
       instructorId: currentCourseDetails?.instructor?.instructorId,
       courseId: currentCourseDetails?._id,
       courseTitle: currentCourseDetails?.title,
       courseImage: currentCourseDetails?.image,
       coursePricing: currentCourseDetails?.pricing,
-    }
+    };
     console.log("Payment Payload = ", paymentPayload);
     const result = await createPaymentService(paymentPayload);
-    if(result?.success){
-      sessionStorage.setItem('currentOrderId', JSON.stringify(result?.data.orderId));
+    if (result?.success) {
+      sessionStorage.setItem(
+        "currentOrderId",
+        JSON.stringify(result?.data?.orderId),
+      );
       setApprovalUrl(result?.data?.approvalUrl);
     }
   }
-
 
   useEffect(() => {
     if (id) setCurrentCourseId(id);
@@ -113,20 +118,13 @@ export default function CourseDetailsPage() {
   console.log(freePreviewLecturesList, "lectureList");
 
   const getIndexOfFreePreviewUrl =
-    currentCourseDetails != null
-      ? currentCourseDetails?.curriculum?.findIndex((item) => item.freePreview)
-      : -1;
+  currentCourseDetails?.curriculum?.findIndex((item) => item.freePreview) ?? -1;
 
   console.log(getIndexOfFreePreviewUrl, "url");
 
-
-
-
   if (globalLoadingState) return <Skeleton className="h-screen w-full" />;
 
-
-
-  if(approvalUrl != ""){
+  if (approvalUrl != "") {
     console.log("approval URL = ", approvalUrl);
     window.location.href = approvalUrl;
   }
@@ -146,7 +144,9 @@ export default function CourseDetailsPage() {
           </span>
           <span>
             Created On{" "}
-            {currentCourseDetails?.createdAt?.toLocaleString().split("T")[0]}
+            {currentCourseDetails?.createdAt
+              ? new Date(currentCourseDetails.createdAt).toLocaleDateString()
+              : ""}
           </span>
           <span className="flex items-center">
             <Globe className="h-4 w-4 mr-1" />
@@ -229,7 +229,7 @@ export default function CourseDetailsPage() {
                     getIndexOfFreePreviewUrl != -1
                       ? currentCourseDetails?.curriculum[
                           getIndexOfFreePreviewUrl
-                        ].videoUrl
+                        ]?.videoUrl
                       : ""
                   }
                 />
