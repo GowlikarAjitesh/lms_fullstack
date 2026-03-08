@@ -29,6 +29,7 @@ import NotFoundPage from "@/pages/NotFoundPage";
 import { Toaster } from "sonner";
 import CourseDetailsPage from "./pages/student/CourseDetailsPage";
 import PaypalPaymentReturnPage from "./pages/student/paymentReturn";
+import CourseProgressPage from "./pages/student/CourseProgressPage";
 
 function App() {
   const auth = useContext(AuthContext);
@@ -68,6 +69,7 @@ function App() {
               <Route path="explore-courses" element={<ExploreCoursesPage/>}/>
               <Route path="my-courses" element={<MyCoursesPages/>}/>
               <Route path="course/details/:id" element={<CourseDetailsPage/>}/>
+              <Route path="course-progress/:id" element={<CourseProgressPage/>}/>
               <Route path='payment-return' element={<PaypalPaymentReturnPage/>}/>
             </Route>
 

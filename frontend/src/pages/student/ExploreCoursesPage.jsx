@@ -12,12 +12,13 @@ import CourseCard from "@/pages/student/components/CourseCard";
 import { filterOptions, sortOptions } from "@/config";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { getAllCoursesToStudentService } from "@/service";
+import { checkSingleCoursePurchasedService, getAllCoursesToStudentService } from "@/service";
 import StudentContext from "@/context/student-context";
 import { Dot, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { createSearchParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import AuthContext from "@/context/auth-context";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -45,7 +46,7 @@ export default function ExploreCoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { studentCoursesList, setStudentCoursesList, globalLoadingState, setGlobalLoadingState } =
     useContext(StudentContext);
-
+  const {userDetails} = useContext(AuthContext);
   function handleFilterChange(getSectionId, getCurrentOption) {
     let cpyFilters = { ...filters };
     const indexOfCurrentSeection =
@@ -84,6 +85,23 @@ export default function ExploreCoursesPage() {
       setGlobalLoadingState(false);
     }
   }
+
+
+  async function handleCourseNavigate(courseId, studentId){
+    console.log("THis is handleCourseNavigate = ", courseId, studentId);
+    const result = await checkSingleCoursePurchasedService(courseId, studentId);
+    if(result?.success){
+      if(result?.data){
+        navigate(`/course-progress/${courseId}`);
+      }
+      else{
+        navigate(`/course/details/${courseId}`);
+      }
+    }else{
+      console.log('Hey i came to false condition...')
+        navigate(`/course/details/${courseId}`);
+      }
+  }
 // async function fetchCoursesList(currentFilters, currentSort) {
 //   const params = {};
 
@@ -118,6 +136,7 @@ export default function ExploreCoursesPage() {
 
   console.log("Filters = ", filters);
   console.log("coursesList = ", studentCoursesList);
+  console.log("UserDetails = ", userDetails);
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Page Wrapper */}
@@ -221,7 +240,7 @@ export default function ExploreCoursesPage() {
               {filteredStudentsCoursesList?.length > 0 ? (
                 filteredStudentsCoursesList.map((studentCourse) => (
                   <Card
-                    onClick={()=>navigate(`/course/details/${studentCourse._id}`)}
+                    onClick={()=>handleCourseNavigate(studentCourse?._id, userDetails?.id)}
                     key={studentCourse._id}
                     className="flex flex-col md:flex-row overflow-hidden border border-border bg-card rounded-xl hover:shadow-lg transition-shadow duration-300 items-center justify-around cursor-pointer"
                   >

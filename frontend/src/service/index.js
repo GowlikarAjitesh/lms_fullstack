@@ -67,6 +67,12 @@ export async function getSingleCourseToStudentService(id){
 }
 
 
+export async function checkSingleCoursePurchasedService(courseId, studentId){
+  const {data} = await axiosInstance.get(`/api/student/course/progress/get/${courseId}/${studentId}`);
+  return data;
+}
+
+
 export async function createPaymentService(formData){
   const {data} = await axiosInstance.post(`/api/student/order/create/`, formData);
   return data;
