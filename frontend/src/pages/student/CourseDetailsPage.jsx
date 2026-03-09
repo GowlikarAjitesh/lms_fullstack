@@ -2,11 +2,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import StudentContext from "@/context/student-context";
 import {
+  checkSingleCoursePurchasedService,
   createPaymentService,
   getSingleCourseToStudentService,
 } from "@/service";
 import React, { useContext, useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import VideoPlayer from "@/components/videoPlayer/VideoPlayer";
@@ -25,8 +26,10 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import AuthContext from "@/context/auth-context";
+import { toast } from "sonner";
 
 export default function CourseDetailsPage() {
+  const navigate = useNavigate();
   const {
     currentCourseDetails,
     setcurrentCourseDetails,
@@ -113,6 +116,18 @@ export default function CourseDetailsPage() {
       ),
     );
   }, [currentCourseDetails]);
+
+  useEffect(() => {
+    const checkPurchase = async () => {
+      if (!userDetails?.id || !currentCourseId) return;
+      const result = await checkSingleCoursePurchasedService(currentCourseId, userDetails.id);
+      if (result?.success && result?.data) {
+        toast.info('You have already purchased this course. Redirecting to course progress.');
+        navigate(`/course-progress/${currentCourseId}`);
+      }
+    };
+    checkPurchase();
+  }, [currentCourseId, userDetails, navigate]);
 
   console.log(currentCourseDetails, "currentCourseDetails");
   console.log(freePreviewLecturesList, "lectureList");

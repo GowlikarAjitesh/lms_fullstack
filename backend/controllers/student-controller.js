@@ -116,8 +116,67 @@ const checkSingleCoursePurchasedController = async (req, res) => {
   }
 };
 
+const getCourseForProgressController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const studentId = req.user.id;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Details",
+      });
+    }
+
+    // Check if student has purchased the course
+    const studentBoughtCourses = await studentCourses.findOne({
+      userId: studentId,
+    });
+
+    if (!studentBoughtCourses) {
+      return res.status(403).json({
+        success: false,
+        message: "You have not purchased this course",
+      });
+    }
+
+    const isStudentAlreadyBoughtCurrentCourse =
+      studentBoughtCourses.courses.findIndex(
+        (item) => item.courseId == id,
+      ) > -1;
+
+    if (!isStudentAlreadyBoughtCurrentCourse) {
+      return res.status(403).json({
+        success: false,
+        message: "You have not purchased this course",
+      });
+    }
+
+    const singleCourse = await Course.findById(id);
+
+    if (!singleCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Course fetched Successfully",
+      data: singleCourse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
 module.exports = {
   getAllCoursesToStudentView,
   getSingleCourseToStudentView,
   checkSingleCoursePurchasedController,
+  getCourseForProgressController,
 };
