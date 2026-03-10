@@ -4,7 +4,8 @@ import { checkSingleCoursePurchasedService } from "@/service";
 import AuthContext from "@/context/auth-context";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 export default function CourseProgressPage() {
   const { id: courseId } = useParams();
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function CourseProgressPage() {
 
   useEffect(() => {
     const checkPurchase = async () => {
-      if (!userDetails?.id) return;
+      if (!userDetails?.id || !courseId) return;
 
       const result = await checkSingleCoursePurchasedService(courseId, userDetails.id);
 
@@ -27,13 +28,25 @@ export default function CourseProgressPage() {
     };
 
     checkPurchase();
-  }, [courseId, userDetails]);
+  }, [courseId, userDetails, navigate]);
 
   if (loading) return <Skeleton className="h-screen w-full" />;
 
   return (
-    <div>
-      This is Course Progress Page
+    <div className="flex flex-col h-screen">
+      <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            className="font-semibold flex items-center cursor-pointer"
+            size="sm"
+            onClick={() => navigate("/courses")}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Back to Courses
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

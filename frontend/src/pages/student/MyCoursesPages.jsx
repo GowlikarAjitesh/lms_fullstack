@@ -90,7 +90,7 @@ export default function MyCoursesPage() {
                     <Progress value={course.progress ?? 0} />
                   </div>
 
-                  <Button className="w-fit">Continue Learning</Button>
+                  <Button onClick={()=>navigate(`/course-progress/${course.courseId}`)} className="w-fit cursor-pointer">Continue Learning</Button>
                 </CardContent>
               </Card>
             ))}
