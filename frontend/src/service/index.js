@@ -94,3 +94,9 @@ export async function getStudentBoughtCoursesService(studentId){
   return data;
 
 }
+
+
+export async function getCurrentCourseProgressService(userId, courseId){
+  const {data} = await axiosInstance.get(`/api/student/course-progress/get/${userId}/${courseId}`);
+  return data;
+}
