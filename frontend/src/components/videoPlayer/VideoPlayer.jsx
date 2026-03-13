@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   MediaController,
   MediaControlBar,
@@ -13,11 +13,27 @@ import {
   MediaFullscreenButton,
 } from "media-chrome/react";
 
-export default function VideoPlayer({ url }) {
+export default function VideoPlayer({ url, onProgressUpdate, onProgressData }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [progress, setProgress] = useState(0);
   const videoRef = useRef(null);
 
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+
+    const percent = video.currentTime / video.duration; // value between 0 and 1
+    setProgress(prev => Math.max(prev, percent));
+
+    console.log("Video progress:", percent);
+  };
+
+  useEffect(()=>{
+    if(progress >= 0.9){
+      onProgressUpdate({...onProgressData, progressValue: progress});
+    }
+  }, [progress]);
   return (
     <div
       className="w-full max-w-full rounded-xl overflow-hidden shadow-lg bg-background border border-border flex justify-center"
@@ -40,6 +56,7 @@ export default function VideoPlayer({ url }) {
           playsInline
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onTimeUpdate={handleTimeUpdate}
           className="w-full h-full object-contain"
         />
 

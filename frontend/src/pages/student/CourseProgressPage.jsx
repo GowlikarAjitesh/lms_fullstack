@@ -19,6 +19,8 @@ import { Label } from "@/components/ui/label";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 import VideoPlayer from "@/components/videoPlayer/VideoPlayer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function CourseProgressPage() {
   const { id: courseId } = useParams();
@@ -54,13 +56,30 @@ export default function CourseProgressPage() {
         progress: response?.data?.progress,
       });
 
-      const firstLecture = response?.data?.courseDetails?.curriculum?.[0];
-      setCurrentLecture(firstLecture);
+      // const firstLecture = response?.data?.courseDetails?.curriculum?.[0];
+      // setCurrentLecture(firstLecture);
 
       if (response?.data?.completed) {
         setShowCourseCompleteDialog(true);
         setShowConfetti(true);
       }
+      if (response?.data?.progress?.length === 0) {
+          setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
+        } else {
+          console.log("logging here");
+          const lastIndexOfViewedAsTrue = response?.data?.progress.reduceRight(
+            (acc, obj, index) => {
+              return acc === -1 && obj.viewed ? index : acc;
+            },
+            -1
+          );
+
+          setCurrentLecture(
+            response?.data?.courseDetails?.curriculum[
+              lastIndexOfViewedAsTrue + 1
+            ]
+          );
+        }
     }
 
     setLoading(false);
@@ -88,7 +107,8 @@ export default function CourseProgressPage() {
   }, [showConfetti]);
 
   if (loading) return <Skeleton className="h-[70vh] w-full" />;
-
+  console.log(studentCurrentCourseProgress);
+  console.log("current Lecture = ", currentLecture);
   return (
     <div className="flex flex-col w-full">
 
@@ -109,17 +129,20 @@ export default function CourseProgressPage() {
             {studentCurrentCourseProgress?.courseDetails?.title}
           </h1>
         </div>
-
+        <div>
         <Button
+        className="hover:bg-transparent bg-transparent"
           variant="ghost"
           onClick={() => setIsSideBarOpen(!isSideBarOpen)}
-        >
+          >
           {isSideBarOpen ? (
             <ChevronRight className="h-5 w-5" />
           ) : (
             <ChevronLeft className="h-5 w-5" />
           )}
         </Button>
+          <span>{`${studentCurrentCourseProgress?.progress.length} %`} Completed</span>
+      </div>
       </div>
 
       {/* MAIN PLAYER AREA */}
@@ -133,6 +156,8 @@ export default function CourseProgressPage() {
               width="100%"
               height="100%"
               url={currentLecture?.videoUrl}
+              onProgressUpdate={setCurrentLecture}
+              onProgressData={currentLecture}
             />
           </div>
 
@@ -146,24 +171,35 @@ export default function CourseProgressPage() {
 
         {/* SIDEBAR */}
         {isSideBarOpen && (
-          <div className="w-[400px] bg-[#1c1d1f] border-l border-gray-700 p-4">
-            <h2 className="text-lg font-semibold mb-4">
-              Curriculum
-            </h2>
+          <div className="w-100 bg-[#1c1d1f] border-l border-gray-700 p-4">
+            <Tabs defaultValue="content" className="h-full flex flex-col">
+              <TabsList className="grid bg-[#1c1d1f] text-white w-full grid-cols-2 p-0 h-14">
+                <TabsTrigger value="content" className="text-white rounded-none h-full">Course Content</TabsTrigger>
+                <TabsTrigger value="overview" className="text-white rounded-none h-full">Overview</TabsTrigger>
+              </TabsList>
 
-            {studentCurrentCourseProgress?.courseDetails?.curriculum?.map(
-              (lecture) => (
-                <button
-                  key={lecture._id}
-                  onClick={() => setCurrentLecture(lecture)}
-                  className={`block w-full text-left p-3 rounded mb-2 hover:bg-gray-800 ${
-                    currentLecture?._id === lecture._id ? "bg-gray-800" : ""
-                  }`}
-                >
-                  {lecture.title}
-                </button>
-              )
-            )}
+              <TabsContent value="content">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-4">
+                    {
+                      studentCurrentCourseProgress?.courseDetails?.curriculum?.map((item) => (
+                        <div className="flex items-center space-x-2 text-sm text-white font-semibold cursor-pointer" key={item?._id}>
+                          <span>{item?.title}</span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              <TabsContent value="overview" className="flex-1 overflow-hidden">
+                    <ScrollArea className="h-full">
+                      <div className="p-4">
+                        <h2 className="text-xl font-bold mb-4">About this Course</h2>
+                        <p className="text-gray-400">{studentCurrentCourseProgress?.courseDetails?.description}</p>
+                      </div>
+                    </ScrollArea>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>

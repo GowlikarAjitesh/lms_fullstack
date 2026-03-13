@@ -1,6 +1,6 @@
 // src/components/Header.jsx
 import { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,8 @@ export default function Header() {
   const { isAuth, userDetails, setIsAuth, setUserDetails } =
     useContext(AuthContext);
   const navigate = useNavigate();
+  
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.clear();
@@ -35,6 +37,7 @@ export default function Header() {
   };
   const isInstructor =
     userDetails?.role == "instructor" || userDetails?.role == "admin";
+    if(location.pathname.includes('course-progress')) return null;
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 overflow-x-hidden">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-full">
