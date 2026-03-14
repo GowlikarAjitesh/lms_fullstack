@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const server_url = import.meta.env.SERVER_URL || "http://localhost:3000";
+const server_url = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
 
 const axiosInstance = axios.create(
     {
