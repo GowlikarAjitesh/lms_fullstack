@@ -37,12 +37,13 @@ export default function ExploreCoursesPage() {
     useState([]);
   const [sort, setSort] = useState("price-lowToHigh");
   const [filters, setFilters] = useState(() => {
-  try {
-    return JSON.parse(sessionStorage.getItem("filters")) || {};
-  } catch {
-    return {};
-  }
-});
+    try {
+      return JSON.parse(sessionStorage.getItem("filters")) || {};
+    } catch {
+      return {};
+    }
+  });
+  const [search, setSearch] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const { studentCoursesList, setStudentCoursesList, globalLoadingState, setGlobalLoadingState } =
     useContext(StudentContext);
@@ -73,12 +74,24 @@ export default function ExploreCoursesPage() {
     setFilters(cpyFilters);
     sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
   }
-  async function fetchCoursesList(filters, sort) {
-    const query = new URLSearchParams({
-      ...filters,
-      sortBy: sort,
+  async function fetchCoursesList(filters, sort, search) {
+    const params = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (Array.isArray(value) && value.length > 0) {
+        params.set(key, value.join(","));
+      }
     });
-    const coursesList = await getAllCoursesToStudentService(query);
+
+    if (sort) {
+      params.set("sortBy", sort);
+    }
+
+    if (search?.trim()) {
+      params.set("search", search.trim());
+    }
+
+    const coursesList = await getAllCoursesToStudentService(params);
     if (coursesList.success) {
       setStudentCoursesList(coursesList?.data);
       setFilteredStudentsCoursesList(coursesList?.data);
@@ -121,9 +134,46 @@ export default function ExploreCoursesPage() {
 //   }
 // }
   useEffect(() => {
-    const buildQueryStringForFilters = createSearchParamsHelper(filters);
-    setSearchParams(new URLSearchParams(buildQueryStringForFilters));
-  }, [filters]);
+    // Initialize state from query params when the page loads (or when user navigates via header search)
+    const urlSearch = searchParams.get("search") || "";
+    const urlSort = searchParams.get("sortBy") || "";
+    const initialFilters = {};
+
+    Object.keys(filterOptions).forEach((key) => {
+      const value = searchParams.get(key);
+      if (value) {
+        initialFilters[key] = value.split(",");
+      }
+    });
+
+    if (urlSearch) setSearch(urlSearch);
+    if (urlSort) setSort(urlSort);
+    if (Object.keys(initialFilters).length) {
+      setFilters(initialFilters);
+      sessionStorage.setItem("filters", JSON.stringify(initialFilters));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (Array.isArray(value) && value.length > 0) {
+        params.set(key, value.join(","));
+      }
+    });
+
+    if (sort) {
+      params.set("sortBy", sort);
+    }
+
+    if (search?.trim()) {
+      params.set("search", search.trim());
+    }
+
+    setSearchParams(params);
+  }, [filters, sort, search, setSearchParams]);
 
   // useEffect(() => {
   //   setSort((prev) => prev || "price-lowToHigh");
@@ -131,8 +181,8 @@ export default function ExploreCoursesPage() {
   // }, []);
 
   useEffect(() => {
-    if (filters !== null && sort !== null) fetchCoursesList(filters, sort);
-  }, [filters, sort]);
+    if (filters !== null && sort !== null) fetchCoursesList(filters, sort, search);
+  }, [filters, sort, search]);
 
   console.log("Filters = ", filters);
   console.log("coursesList = ", studentCoursesList);
@@ -207,7 +257,11 @@ export default function ExploreCoursesPage() {
             {/* Top Controls */}
             <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
               <div className="w-full md:w-1/3">
-                <Input placeholder="Search courses..." />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search courses..."
+                />
               </div>
               {/* <div className="overflow-hidden">
                 {Object.keys(filtersSelected).map((filterItem) => (
@@ -217,7 +271,7 @@ export default function ExploreCoursesPage() {
                   </div>
                 ))}
               </div> */}
-              <Select>
+              <Select value={sort} onValueChange={(value) => setSort(value)}>
                 <SelectTrigger className="w-50">
                   <SelectValue placeholder="Sort By" />
                 </SelectTrigger>

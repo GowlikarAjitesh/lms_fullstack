@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Plus, Trash2 } from "lucide-react";
-import React, { useContext, useEffect, useState } from "react";
+import { Edit, Plus } from "lucide-react";
+import React, { useContext, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,13 +10,13 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { Form, Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import InstructorContext from "@/context/instructorContext";
-import { getAllCoursesService } from "@/service";
+import { getAllCoursesService, togglePublishCourseService } from "@/service";
 import { toast } from "react-toastify";
+import { Switch } from "@/components/ui/switch";
 
-
-export function EmptyRow({ message = "No Data found", colSpan = 4 }) {
+export function EmptyRow({ message = "No Data found", colSpan = 5 }) {
   return (
     <TableRow>
       <TableCell colSpan={colSpan} className="text-center text-muted-foreground">
@@ -26,48 +26,56 @@ export function EmptyRow({ message = "No Data found", colSpan = 4 }) {
   );
 }
 
-
 export default function InstructorCourses() {
   const navigate = useNavigate();
-  const { instructorCoursesList, setInstructorCoursesList, editSingleCourseData, setEditSingleCourseData } =
-    useContext(InstructorContext);
+
+  const {
+    instructorCoursesList,
+    setInstructorCoursesList,
+    setEditSingleCourseData,
+  } = useContext(InstructorContext);
+
   async function fetchAllCourses() {
     const coursesList = await getAllCoursesService();
     if (coursesList?.success) {
-      console.log("Courses list from instructorCourses Page: ", coursesList);
       setInstructorCoursesList(coursesList.data);
     } else {
-      toast.error(coursesList.message);
+      toast.error(coursesList.message || "Failed to fetch courses");
     }
   }
+
   useEffect(() => {
     fetchAllCourses();
   }, []);
 
-  const [open, setOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    students: "",
-    revenue: "",
-  });
-
   const handleEdit = (course) => {
-    console.log("edit course data = ", course);
     navigate(`/instructor/editCourse/${course._id}`);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      // setCourses(courses.filter((course) => course.id !== id));
-      console.log("Delete function need to be implemented...")
-    }
-  };
-
-  function handleAddNewCourse() {
+  const handleAddNewCourse = () => {
     setEditSingleCourseData(null);
     navigate("/instructor/newCourse");
-  }
+  };
+
+  const handleTogglePublish = async (course) => {
+    const updatedStatus = !course.isPublished;
+    console.log(updatedStatus, "status");
+    const response = await togglePublishCourseService(course._id, updatedStatus);
+
+    if (response?.success) {
+      toast.success(response.message || "Course status updated");
+
+      setInstructorCoursesList((prev) =>
+        prev.map((item) =>
+          item._id === course._id
+            ? { ...item, isPublished: updatedStatus }
+            : item
+        )
+      );
+    } else {
+      toast.error(response?.message || "Failed to update course status");
+    }
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -80,6 +88,7 @@ export default function InstructorCourses() {
           </Button>
         </CardHeader>
       </Card>
+
       <Card>
         <CardContent className="overflow-x-auto">
           <Table>
@@ -88,6 +97,7 @@ export default function InstructorCourses() {
                 <TableHead>Course Name</TableHead>
                 <TableHead>Students</TableHead>
                 <TableHead>Revenue</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -96,14 +106,29 @@ export default function InstructorCourses() {
               {instructorCoursesList?.length === 0 ? (
                 <EmptyRow />
               ) : (
-                instructorCoursesList.map((course, index) => (
+                instructorCoursesList.map((course) => (
                   <TableRow key={course._id}>
                     <TableCell className="font-medium">
                       {course.title}
                     </TableCell>
-                    <TableCell>{course.students?.length}</TableCell>
+
+                    <TableCell>{course.students?.length || 0}</TableCell>
+
                     <TableCell>
-                      ${(course.students?.length || 0) * Number(course.pricing)}
+                      ${(course.students?.length || 0) * Number(course.pricing || 0)}
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={!!course.isPublished}
+                          onCheckedChange={() => handleTogglePublish(course)}
+                          className="cursor-pointer"
+                        />
+                        <span className="text-sm">
+                          {course.isPublished ? "Published" : "Unpublished"}
+                        </span>
+                      </div>
                     </TableCell>
 
                     <TableCell className="text-right">
@@ -114,15 +139,6 @@ export default function InstructorCourses() {
                           onClick={() => handleEdit(course)}
                         >
                           <Edit className="h-4 w-4" />
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500"
-                          onClick={() => handleDelete(course.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

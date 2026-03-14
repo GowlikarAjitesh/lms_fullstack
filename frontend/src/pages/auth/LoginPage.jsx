@@ -28,23 +28,30 @@ export default function LoginPage() {
   const handleSubmit = async (values, { setSubmitting }) => {
     setSubmitting(true);
     const response = await loginFormActions(values);
-    
+
     if (response.success) {
       toast.success(response.message || "Login successful!");
 
+      const user = {
+        ...response.data,
+        id: response.data.id || response.data._id,
+      };
+
       localStorage.setItem("accessToken", response.token);
-      localStorage.setItem("userDetails", JSON.stringify(response.data));
+      localStorage.setItem("userDetails", JSON.stringify(user));
 
       setIsAuth(true);
-      setUserDetails(response.data);
+      setUserDetails(user);
 
       // Navigate based on user role
-      if (response.data?.role === 'instructor' || response.data?.role === 'admin') {
-        navigate('/instructor', { replace: true });
+      if (user?.role === "instructor" || user?.role === "admin") {
+        navigate("/instructor/dashboard", { replace: true });
       } else {
         // Student: navigate to home page or the original destination
-        navigate(from || '/', { replace: true });
-      } 
+        navigate(from || "/", { replace: true });
+      }
+
+      console.log("Navigation = ", user?.role === "instructor");
     } else {
       toast.error(
         response.message ||

@@ -1,5 +1,5 @@
 // src/components/Header.jsx
-import { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
@@ -26,14 +26,43 @@ export default function Header() {
   const { isAuth, userDetails, setIsAuth, setUserDetails } =
     useContext(AuthContext);
   const navigate = useNavigate();
-  
   const location = useLocation();
+  const [searchText, setSearchText] = useState("");
+  const [studentOrInstructorView, setStudentOrInstructorView] = useState('Instructor')
+  // function handleInstructorOrStudentViewButton() {
+  //   if(location.pathname.includes('instructor')){
+  //     navigate('/');
+  //     setStudentOrInstructorView('Instructor');
+  //   }
+  //   else{
+  //     navigate('/instructor/dashboard');
+  //     setStudentOrInstructorView('Student');
+  //   }
+  // }
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setSearchText(params.get("search") || "");
+  }, [location.search]);
 
   const handleLogout = () => {
     localStorage.clear();
+    sessionStorage.clear();
     setIsAuth(false);
     setUserDetails(null);
     navigate("/auth/login");
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (event.key !== "Enter") return;
+
+    const trimmed = searchText.trim();
+    const params = new URLSearchParams();
+
+    if (trimmed) {
+      params.set("search", trimmed);
+    }
+
+    navigate(`/explore-courses?${params.toString()}`);
   };
   const isInstructor =
     userDetails?.role == "instructor" || userDetails?.role == "admin";
@@ -74,13 +103,16 @@ export default function Header() {
         </div>
 
         {/* Middle: Search Bar (Hidden on mobile) */}
-        <div className="hidden lg:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
+        <div className={`hidden lg:flex flex-1 max-w-md mx-8 ${isInstructor ? 'hidden' : 'hidden'}`}>
+          <div className={`relative w-full ${isInstructor ? 'hidden' : 'hidden'}`}>
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onKeyDown={handleSearchKeyDown}
               placeholder="Search for courses..."
-              className="w-full bg-input border-border pl-9 text-foreground focus-visible:ring-ring"
+              className={`w-full bg-input border-border pl-9 text-foreground focus-visible:ring-ring `}
             />
           </div>
         </div>
@@ -91,8 +123,18 @@ export default function Header() {
             <>
               {/* Instructor Switcher */}
               {userDetails?.role === "instructor" ? (
-                <></>
+                (
+                  <></>
+                // <Button
+                //   onClick={handleInstructorOrStudentViewButton}
+                //   variant="ghost"
+                //   className="hidden sm:flex text-muted-foreground hover:text-primary-foreground hover:bg-primary hover:cursor-pointer border-2 border-border"
+                // >
+                //   {studentOrInstructorView}  {" View"}
+                // </Button>
+              )
               ) : (
+                isInstructor &&
                 <Button
                   variant="ghost"
                   className="hidden sm:flex text-muted-foreground hover:text-primary-foreground hover:bg-primary hover:cursor-pointer border-2 border-border"
@@ -104,7 +146,7 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-foreground cursor-pointer hover:bg-transparent"
+                className={`text-muted-foreground hover:text-foreground cursor-pointer hover:bg-transparent ${isInstructor ? 'hidden' : 'hidden'}`}
               >
                 <Bell className="h-5 w-5" />
               </Button>

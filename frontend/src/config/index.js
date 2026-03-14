@@ -97,6 +97,13 @@ export const courseLandingPageFormControls = [
     componentType: "textarea",
     placeholder: "Welcome message for students",
   },
+  {
+    name: "tags",
+    label: "Tags",
+    componentType: "input",
+    type: "text",
+    placeholder: "e.g. JavaScript, React, Backend",
+  },
 ];
 
 export const courseLandingInitialFormData = {
@@ -109,6 +116,7 @@ export const courseLandingInitialFormData = {
   pricing: 0,
   objectives: "",
   welcomeMessage: "",
+  tags: "",
   image: "",
 };
 

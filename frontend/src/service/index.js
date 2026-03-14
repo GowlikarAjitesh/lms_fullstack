@@ -31,6 +31,17 @@ export async function getAllCoursesService(){
 }
 
 
+export async function togglePublishCourseService(courseId, isPublished){
+  const {data} = await axiosInstance.put(
+      `/api/instructor/course/${courseId}/publish`,
+      { isPublished },
+      { withCredentials: true }
+    );
+
+    return data;
+}
+
+
 export async function getSingleCourseService(id){
   const {data} = await axiosInstance.get(`/api/instructor/course/get/${id}`);
   return data;
@@ -98,5 +109,46 @@ export async function getStudentBoughtCoursesService(studentId){
 
 export async function getCurrentCourseProgressService(userId, courseId){
   const {data} = await axiosInstance.get(`/api/student/course-progress/get/${userId}/${courseId}`);
+  return data;
+}
+
+
+export async function markCurrentCourseLectureAsViewedService(userId, courseId, lectureId){
+  const {data} = await axiosInstance.post(`/api/student/course-progress/mark-lecture-viewed`, {
+    userId, courseId, lectureId
+  });
+  return data;
+}
+
+export async function resetCurrentCourseProgressService(userId, courseId){
+  const {data} = await axiosInstance.post(`/api/student/course-progress/reset-progress`,{
+    userId, courseId
+  });
+  return data;
+}
+
+export async function requestInstructorService(body) {
+  const { data } = await axiosInstance.post(`/api/user/instructor-request`, body);
+  return data;
+}
+
+export async function getInstructorRequestsService() {
+  const { data } = await axiosInstance.get(`/api/admin/instructor-requests`);
+  return data;
+}
+
+export async function approveInstructorRequestService(userId) {
+  const { data } = await axiosInstance.post(`/api/admin/instructor-requests/${userId}/approve`);
+  return data;
+}
+
+export async function rejectInstructorRequestService(userId) {
+  const { data } = await axiosInstance.post(`/api/admin/instructor-requests/${userId}/reject`);
+  return data;
+}
+
+export async function getAllUsersService(role) {
+  const params = role ? `?role=${encodeURIComponent(role)}` : "";
+  const { data } = await axiosInstance.get(`/api/admin/users${params}`);
   return data;
 }

@@ -1,11 +1,15 @@
 import React, { useEffect, useContext, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCurrentCourseProgressService } from "@/service";
+import {
+  getCurrentCourseProgressService,
+  markCurrentCourseLectureAsViewedService,
+  resetCurrentCourseProgressService,
+} from "@/service";
 import AuthContext from "@/context/auth-context";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Check } from "lucide-react";
 import StudentContext from "@/context/student-context";
 import {
   Dialog,
@@ -28,17 +32,24 @@ export default function CourseProgressPage() {
   const { width, height } = useWindowSize();
 
   const { userDetails } = useContext(AuthContext);
-  const { studentCurrentCourseProgress, setStudentCurrentCourseProgress } =
-    useContext(StudentContext);
+  const {
+    studentCurrentCourseProgress,
+    setStudentCurrentCourseProgress,
+    studentBoughtCoursesList,
+    setStudentBoughtCoursesList,
+  } = useContext(StudentContext);
 
   const [loading, setLoading] = useState(true);
   const [lockCourse, setLockCourse] = useState(false);
   const [currentLecture, setCurrentLecture] = useState(null);
-  const [showCourseCompleteDialog, setShowCourseCompleteDialog] = useState(false);
+  const [showCourseCompleteDialog, setShowCourseCompleteDialog] =
+    useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
+  const [lastMarkedLectureId, setLastMarkedLectureId] = useState(null);
 
   async function fetchCurrentCourseProgress() {
+  try {
     const response = await getCurrentCourseProgressService(
       userDetails?.id,
       courseId
@@ -51,38 +62,89 @@ export default function CourseProgressPage() {
         return;
       }
 
+      const courseDetails = response?.data?.courseDetails;
+      const progress = response?.data?.progress || [];
+      const curriculum = courseDetails?.curriculum || [];
+
       setStudentCurrentCourseProgress({
-        courseDetails: response?.data?.courseDetails,
-        progress: response?.data?.progress,
+        courseDetails,
+        progress,
+        progressPercentage: response?.data?.progressPercentage ?? 0,
       });
 
-      // const firstLecture = response?.data?.courseDetails?.curriculum?.[0];
-      // setCurrentLecture(firstLecture);
+      // keep the My Courses list in sync
+      if (studentBoughtCoursesList && studentBoughtCoursesList.length > 0) {
+        setStudentBoughtCoursesList((prev) =>
+          prev?.map((course) =>
+            String(course.courseId) === String(courseId)
+              ? { ...course, progress: response?.data?.progressPercentage ?? 0 }
+              : course,
+          ),
+        );
+      }
 
       if (response?.data?.completed) {
         setShowCourseCompleteDialog(true);
         setShowConfetti(true);
       }
-      if (response?.data?.progress?.length === 0) {
-          setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
-        } else {
-          console.log("logging here");
-          const lastIndexOfViewedAsTrue = response?.data?.progress.reduceRight(
-            (acc, obj, index) => {
-              return acc === -1 && obj.viewed ? index : acc;
-            },
-            -1
-          );
 
-          setCurrentLecture(
-            response?.data?.courseDetails?.curriculum[
-              lastIndexOfViewedAsTrue + 1
-            ]
-          );
-        }
+      const viewedLectureIds = new Set(
+        progress
+          .filter((item) => item.viewed)
+          .map((item) => String(item.lectureId))
+      );
+
+      const nextLecture = curriculum.find(
+        (lec) => !viewedLectureIds.has(String(lec._id))
+      );
+
+      const allLecturesViewed = !nextLecture && curriculum.length > 0;
+
+      if (allLecturesViewed) {
+        setCurrentLecture(null);
+        setShowCourseCompleteDialog(true);
+        setShowConfetti(true);
+      } else {
+        setCurrentLecture(nextLecture ?? null);
+      }
     }
-
+  } catch (error) {
+    console.error("Error fetching course progress:", error);
+    toast.error("Failed to load course progress");
+  } finally {
     setLoading(false);
+  }
+}
+
+  async function updateCourseProgress() {
+    if (currentLecture) {
+      const response = await markCurrentCourseLectureAsViewedService(
+        userDetails?.id,
+        studentCurrentCourseProgress?.courseDetails?._id,
+        currentLecture?._id
+      );
+      if (response?.success) {
+        fetchCurrentCourseProgress();
+      }
+    }
+  }
+
+  async function restartCourse() {
+    if (!userDetails?.id || !courseId) return;
+
+    try {
+      const response = await resetCurrentCourseProgressService(userDetails.id, courseId);
+      if(response?.success){
+        setShowCourseCompleteDialog(false);
+        setShowConfetti(false);
+        setLastMarkedLectureId(null);
+
+        fetchCurrentCourseProgress();
+      }
+    } catch (error) {
+      console.error("Error restarting course", error);
+      toast.error("Failed to restart course");
+    }
   }
 
   useEffect(() => {
@@ -90,6 +152,16 @@ export default function CourseProgressPage() {
       fetchCurrentCourseProgress();
     }
   }, [userDetails, courseId]);
+
+  useEffect(() => {
+    if (
+      currentLecture?.progressValue >= 0.9 &&
+      currentLecture?._id !== lastMarkedLectureId
+    ) {
+      updateCourseProgress();
+      setLastMarkedLectureId(currentLecture?._id);
+    }
+  }, [currentLecture, lastMarkedLectureId]);
 
   useEffect(() => {
     if (lockCourse) {
@@ -107,20 +179,16 @@ export default function CourseProgressPage() {
   }, [showConfetti]);
 
   if (loading) return <Skeleton className="h-[70vh] w-full" />;
-  console.log(studentCurrentCourseProgress);
+  console.log("student courses", studentCurrentCourseProgress);
   console.log("current Lecture = ", currentLecture);
   return (
     <div className="flex flex-col w-full">
-
       {showConfetti && <Confetti width={width} height={height} />}
 
       {/* HEADER */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-          >
+          <Button variant="ghost" onClick={() => navigate(-1)}>
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back
           </Button>
@@ -130,29 +198,42 @@ export default function CourseProgressPage() {
           </h1>
         </div>
         <div>
-        <Button
-        className="hover:bg-transparent bg-transparent"
-          variant="ghost"
-          onClick={() => setIsSideBarOpen(!isSideBarOpen)}
+          <Button
+            className="hover:bg-transparent bg-transparent"
+            variant="ghost"
+            onClick={() => setIsSideBarOpen(!isSideBarOpen)}
           >
-          {isSideBarOpen ? (
-            <ChevronRight className="h-5 w-5" />
-          ) : (
-            <ChevronLeft className="h-5 w-5" />
-          )}
-        </Button>
-          <span>{`${studentCurrentCourseProgress?.progress.length} %`} Completed</span>
-      </div>
+            {isSideBarOpen ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-5 w-5" />
+            )}
+          </Button>
+      <span>
+        {`${
+          studentCurrentCourseProgress?.courseDetails?.curriculum?.length
+            ? Math.round(
+                (studentCurrentCourseProgress?.progress?.filter(
+                  (item) => item.viewed,
+                ).length /
+                  studentCurrentCourseProgress.courseDetails.curriculum
+                    .length) *
+                  100,
+              )
+            : 0
+        } %`}{" "}
+        Completed
+      </span>
+        </div>
       </div>
 
       {/* MAIN PLAYER AREA */}
       <div className="flex w-full">
-
         {/* VIDEO SECTION */}
         <div className="flex flex-col flex-1 items-center p-6">
-
           <div className="w-full max-w-5xl aspect-video bg-black">
             <VideoPlayer
+              key={currentLecture?._id}
               width="100%"
               height="100%"
               url={currentLecture?.videoUrl}
@@ -162,11 +243,8 @@ export default function CourseProgressPage() {
           </div>
 
           <div className="w-full max-w-5xl mt-4 bg-[#1c1d1f] p-6">
-            <h2 className="text-2xl font-bold">
-              {currentLecture?.title}
-            </h2>
+            <h2 className="text-2xl font-bold">{currentLecture?.title}</h2>
           </div>
-
         </div>
 
         {/* SIDEBAR */}
@@ -174,30 +252,50 @@ export default function CourseProgressPage() {
           <div className="w-100 bg-[#1c1d1f] border-l border-gray-700 p-4">
             <Tabs defaultValue="content" className="h-full flex flex-col">
               <TabsList className="grid bg-[#1c1d1f] text-white w-full grid-cols-2 p-0 h-14">
-                <TabsTrigger value="content" className="text-white rounded-none h-full">Course Content</TabsTrigger>
-                <TabsTrigger value="overview" className="text-white rounded-none h-full">Overview</TabsTrigger>
+                <TabsTrigger
+                  value="content"
+                  className="text-white rounded-none h-full"
+                >
+                  Course Content
+                </TabsTrigger>
+                <TabsTrigger
+                  value="overview"
+                  className="text-white rounded-none h-full"
+                >
+                  Overview
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="content">
                 <ScrollArea className="h-full">
                   <div className="p-4 space-y-4">
-                    {
-                      studentCurrentCourseProgress?.courseDetails?.curriculum?.map((item) => (
-                        <div className="flex items-center space-x-2 text-sm text-white font-semibold cursor-pointer" key={item?._id}>
+                    {studentCurrentCourseProgress?.courseDetails?.curriculum?.map(
+                      (item) => (
+                        <div
+                          className="flex items-center space-x-2 text-sm text-white font-semibold cursor-pointer"
+                          key={item?._id}
+                        >
+                          {
+                            studentCurrentCourseProgress?.progress?.find((progressItem) => progressItem.lectureId === item._id)?.viewed ? <Check className="h-4 w-4 text-green-500"/> : <Play className="h-4 w-4"/>
+                          }
                           <span>{item?.title}</span>
                         </div>
-                      ))
-                    }
+                      ),
+                    )}
                   </div>
                 </ScrollArea>
               </TabsContent>
               <TabsContent value="overview" className="flex-1 overflow-hidden">
-                    <ScrollArea className="h-full">
-                      <div className="p-4">
-                        <h2 className="text-xl font-bold mb-4">About this Course</h2>
-                        <p className="text-gray-400">{studentCurrentCourseProgress?.courseDetails?.description}</p>
-                      </div>
-                    </ScrollArea>
+                <ScrollArea className="h-full">
+                  <div className="p-4">
+                    <h2 className="text-xl font-bold mb-4">
+                      About this Course
+                    </h2>
+                    <p className="text-gray-400">
+                      {studentCurrentCourseProgress?.courseDetails?.description}
+                    </p>
+                  </div>
+                </ScrollArea>
               </TabsContent>
             </Tabs>
           </div>
@@ -237,7 +335,7 @@ export default function CourseProgressPage() {
                   Browse Courses
                 </Button>
 
-                <Button variant="outline">
+                <Button variant="outline" onClick={restartCourse}>
                   Restart Course
                 </Button>
               </div>
@@ -245,7 +343,6 @@ export default function CourseProgressPage() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

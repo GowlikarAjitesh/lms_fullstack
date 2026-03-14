@@ -1,5 +1,5 @@
 const Course = require('../models/course');
-
+const CourseProgress = require('../models/courseProgress');
 
 const createNewCourseController = async (req, res) => {
     try {
@@ -68,17 +68,65 @@ const getSingleCourseController = async (req, res) => {
 
 const getAlloursesController = async (req, res) => {
     try {
-        const allCoursesList = await Course.find({});
+        // Only return courses created by this instructor
+        const instructorId = req.user?.id;
+        const allCoursesList = await Course.find({ "instructor.instructorId": instructorId });
         if(!allCoursesList){
             return res.status(400).json({
                 success: false,
                 message: 'Courses cannot be retrieved'
             })
         }
+
+        // Add analytics info per course
+        const courseAnalytics = await Promise.all(
+          allCoursesList.map(async (course) => {
+            const progressDocs = await CourseProgress.find({ courseId: String(course._id) });
+
+            const totalStudents = progressDocs.length;
+            const completedCount = progressDocs.filter((doc) => doc.completed).length;
+            const completionRate = totalStudents ? Math.round((completedCount / totalStudents) * 100) : 0;
+
+            const completionDurations = progressDocs
+              .filter((doc) => doc.completed && doc.completionDate)
+              .map((doc) => {
+                const startDate = doc.lecturesProgress
+                  ?.filter((l) => l.viewedDate)
+                  .reduce((min, l) => {
+                    const date = new Date(l.viewedDate);
+                    if (!min || date < min) return date;
+                    return min;
+                  }, null);
+
+                if (!startDate) return null;
+
+                const durationMs = new Date(doc.completionDate) - startDate;
+                return durationMs > 0 ? durationMs : null;
+              })
+              .filter(Boolean);
+
+            const avgCompletionMs =
+              completionDurations.length > 0
+                ? completionDurations.reduce((sum, v) => sum + v, 0) / completionDurations.length
+                : null;
+
+            const avgCompletionHours = avgCompletionMs ? Number((avgCompletionMs / 1000 / 60 / 60).toFixed(1)) : null;
+
+            return {
+              ...course.toObject(),
+              analytics: {
+                totalStudents,
+                completionRate,
+                avgCompletionHours,
+              },
+            };
+          }),
+        );
+
         res.status(200).json({
             success: true,
-            message: 'Couses retrieved successfully',
-            data: allCoursesList
+            message: 'Courses retrieved successfully',
+            data: courseAnalytics
         })
     } catch (error) {
         res.status(500).json({
@@ -130,16 +178,43 @@ const updateCourseController = async (req, res) => {
     }
 }
 
+const togglePublishCourseController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isPublished } = req.body;
 
-const deleteCourseController = async (req, res) => {
-    try {
-        console.log('Delete functionality is not yet implemented...')
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Something went wrong'
-        })
+    if (typeof isPublished !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isPublished must be true or false",
+      });
     }
-}
 
-module.exports = {createNewCourseController, getSingleCourseController, getAlloursesController, updateCourseController, deleteCourseController};
+    const updatedCourse = await Course.findByIdAndUpdate(
+      id,
+      { isPublished },
+      { new: true }
+    );
+
+    if (!updatedCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Course ${isPublished ? "published" : "unpublished"} successfully`,
+      data: updatedCourse,
+    });
+  } catch (error) {
+    console.log("togglePublishCourseController error = ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
+module.exports = {createNewCourseController, getSingleCourseController, getAlloursesController, updateCourseController, togglePublishCourseController};

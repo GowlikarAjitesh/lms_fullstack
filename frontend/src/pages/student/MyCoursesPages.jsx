@@ -1,7 +1,8 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import StudentContext from "@/context/student-context";
 import { getStudentBoughtCoursesService } from "@/service";
 import AuthContext from "@/context/auth-context";
@@ -14,20 +15,32 @@ export default function MyCoursesPage() {
   console.log("Student Id: ", studentId);
   const { studentBoughtCoursesList, setStudentBoughtCoursesList } =
     useContext(StudentContext);
+  const [isLoading, setIsLoading] = useState(true);
+
   async function getStudentBoughtCoursesList(studentId) {
     if (!studentId) return;
+
+    setIsLoading(true);
     const result = await getStudentBoughtCoursesService(studentId);
-    
+
     if (result?.success) {
       setStudentBoughtCoursesList(result?.data?.courses);
       console.log(result.data);
     }
+
+    setIsLoading(false);
   }
+
   useEffect(() => {
-    if (studentId) {
-      getStudentBoughtCoursesList(studentId);
-    }
+    if (!studentId) return;
+
+    // Clear any stale data from previous sessions while fetching
+    setStudentBoughtCoursesList([]);
+    setIsLoading(true);
+
+    getStudentBoughtCoursesList(studentId);
   }, [studentId]);
+
   console.log("Student Bought course: ", studentBoughtCoursesList);
 
   return (
@@ -42,7 +55,12 @@ export default function MyCoursesPage() {
 
       {/* Courses */}
       <div className="max-w-6xl mx-auto px-6 pb-16">
-        {!studentBoughtCoursesList || studentBoughtCoursesList.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-6">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        ) : !studentBoughtCoursesList || studentBoughtCoursesList.length === 0 ? (
           <div className="text-center py-20 border border-border rounded-2xl">
             <p className="text-muted-foreground">
               You haven't enrolled in any courses yet.

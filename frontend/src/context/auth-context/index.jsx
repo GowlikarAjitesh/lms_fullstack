@@ -19,12 +19,17 @@ export function AuthProvider({ children }) {
 
         const res = await axiosInstance.get("/api/auth/check-auth");
         const userData = res.data.data;
-        const userDetails = localStorage.getItem("userDetails");
-        if(!userDetails){
-          localStorage.setItem("userDetails", JSON.stringify(userData));
+        const normalizedUser = {
+          ...userData,
+          id: userData.id || userData._id,
+        };
+
+        const storedUserDetails = localStorage.getItem("userDetails");
+        if (!storedUserDetails) {
+          localStorage.setItem("userDetails", JSON.stringify(normalizedUser));
         }
         setIsAuth(true);
-        setUserDetails(res.data.data);
+        setUserDetails(normalizedUser);
       } catch {
         setIsAuth(false);
         setUserDetails(null);

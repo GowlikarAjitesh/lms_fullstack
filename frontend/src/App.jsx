@@ -8,6 +8,8 @@ import RouteGuard from "@/components/rotueGuard/index";
 
 import Layout from "@/pages/Layout";
 
+import Profile from '@/pages/Profile';
+import Dashboard from '@/pages/Dashboard'
 // Auth Pages
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -42,6 +44,8 @@ function App() {
 
         {/* {public Routes } */}
         <Route path="/" element={<Layout />}>
+        <Route path="/profile" element={<Profile/>}/>
+        <Route path="/dashboard" element={<Dashboard/>}/>
 
         {/* 🔐 Global Route Guard */}
         <Route

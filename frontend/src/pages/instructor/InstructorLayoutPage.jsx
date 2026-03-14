@@ -33,7 +33,7 @@ export default function InstructorLayoutPage() {
                       ? "default"
                       : "ghost"
                   }
-                  className="w-full justify-start mb-2"
+                  className="w-full justify-start mb-2 cursor-pointer"
                 >
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.label}

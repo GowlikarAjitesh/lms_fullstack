@@ -43,6 +43,7 @@ export default function CourseDetailsPage() {
   const [freePreviewDetailsDialog, setFreePreviewDetailsDialog] = useState({});
   const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
   const [approvalUrl, setApprovalUrl] = useState("");
+  const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const { id } = useParams();
   const location = useLocation();
 
@@ -66,6 +67,10 @@ export default function CourseDetailsPage() {
   }
 
   async function handleCreatePayment() {
+    if (isCreatingPayment) return;
+
+    setIsCreatingPayment(true);
+
     const paymentPayload = {
       userId: userDetails?.id,
       userName: userDetails?.username,
@@ -83,14 +88,24 @@ export default function CourseDetailsPage() {
       courseImage: currentCourseDetails?.image,
       coursePricing: currentCourseDetails?.pricing,
     };
-    console.log("Payment Payload = ", paymentPayload);
-    const result = await createPaymentService(paymentPayload);
-    if (result?.success) {
-      sessionStorage.setItem(
-        "currentOrderId",
-        JSON.stringify(result?.data?.orderId),
-      );
-      setApprovalUrl(result?.data?.approvalUrl);
+
+    try {
+      console.log("Payment Payload = ", paymentPayload);
+      const result = await createPaymentService(paymentPayload);
+      if (result?.success) {
+        sessionStorage.setItem(
+          "currentOrderId",
+          JSON.stringify(result?.data?.orderId),
+        );
+        setApprovalUrl(result?.data?.approvalUrl);
+      } else {
+        toast.error(result?.message || "Payment initiation failed");
+      }
+    } catch (error) {
+      console.error("Payment initiation error", error);
+      toast.error("Something went wrong while initiating payment");
+    } finally {
+      setIsCreatingPayment(false);
     }
   }
 
@@ -253,7 +268,13 @@ export default function CourseDetailsPage() {
                 {"$"}
                 {currentCourseDetails?.pricing}
               </span>
-              <Button onClick={handleCreatePayment}>BUY NOW</Button>
+              <Button
+                onClick={handleCreatePayment}
+                disabled={isCreatingPayment}
+                className="w-full cursor-pointer"
+              >
+                {isCreatingPayment ? "Processing…" : "BUY NOW"}
+              </Button>
             </CardContent>
           </Card>
         </aside>

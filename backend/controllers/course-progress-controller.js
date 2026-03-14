@@ -1,6 +1,16 @@
 const CourseProgress = require("../models/courseProgress");
 const studentCourses = require("../models/studentCourses");
 const Course = require("../models/course");
+
+const calculateProgressPercentage = (course, progressList = []) => {
+  if (!course?.curriculum?.length) return 0;
+  const viewedCount = new Set(
+    progressList
+      .filter((item) => item.viewed)
+      .map((item) => String(item.lectureId)),
+  ).size;
+  return Math.round((viewedCount / course.curriculum.length) * 100);
+};
 // get current course progress
 const getCurrentCourseProgressController = async (req, res) => {
   try {
@@ -24,22 +34,30 @@ const getCurrentCourseProgressController = async (req, res) => {
     const currentUserCourseProgress = await CourseProgress.findOne({
       userId,
       courseId,
-    }).populate("courseId");
+    });
 
-    if (!currentUserCourseProgress || currentUserCourseProgress?.lecturesProgress?.length == 0) {
-      const course = await Course.findById(courseId);
-      if (!course) {
-        return res.status(404).json({
-          success: false,
-          message: "Course Not Found",
-        });
-      }
+    const courseDetails = await Course.findById(courseId);
+    if (!courseDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Course Not Found",
+      });
+    }
+
+    const progressList = currentUserCourseProgress?.lecturesProgress || [];
+    const progressPercentage = calculateProgressPercentage(
+      courseDetails,
+      progressList,
+    );
+
+    if (!currentUserCourseProgress || progressList.length === 0) {
       return res.status(200).json({
         success: true,
         message: "No progress found. Start watching the course.",
         data: {
-          courseDetails: course,
+          courseDetails,
           progress: [],
+          progressPercentage,
           completed: false,
           completionDate: null,
           isPurchased: true,
@@ -50,8 +68,9 @@ const getCurrentCourseProgressController = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        courseDetails: currentUserCourseProgress?.courseId,
-        progress: currentUserCourseProgress?.lecturesProgress,
+        courseDetails,
+        progress: progressList,
+        progressPercentage,
         completed: currentUserCourseProgress?.completed,
         completionDate: currentUserCourseProgress?.completionDate,
         isPurchased: true,
@@ -70,7 +89,7 @@ const getCurrentCourseProgressController = async (req, res) => {
 const markCurrentCourseLectureAsViewedController = async (req, res) => {
   try {
     const {userId, courseId, lectureId} = req.body;
-    let progress = await CourseProgress.find({userId, courseId});
+    let progress = await CourseProgress.findOne({userId, courseId});
     
 
     if(!progress){
@@ -101,24 +120,53 @@ const markCurrentCourseLectureAsViewedController = async (req, res) => {
     }
 
     const course = await Course.findById(courseId);
-    if(!course){
+    if (!course) {
       return res.status(404).json({
         success: false,
-        message: 'Course Not Found'
-      })
+        message: "Course Not Found",
+      });
     }
-    const allLecturesViewed = progress.lecturesProgress.length === course.curriculum.length && progress.lectureProgress.every(item=>item.viewd); 
-    if(allLecturesViewed){
-      progress.completed=true;
+
+    const progressPercentage = calculateProgressPercentage(
+      course,
+      progress.lecturesProgress,
+    );
+
+    const viewedLectureIds = new Set(
+      progress.lecturesProgress
+        .filter((item) => item.viewed)
+        .map((item) => String(item.lectureId)),
+    );
+
+    const allLecturesViewed =
+      course.curriculum.length > 0 &&
+      course.curriculum.every((lec) => viewedLectureIds.has(String(lec._id)));
+
+    if (allLecturesViewed) {
+      progress.completed = true;
       progress.completionDate = new Date();
     }
+
     await progress.save();
+
+    // keep the purchased course progress field in sync
+    const purchasedCourses = await studentCourses.findOne({ userId });
+    if (purchasedCourses) {
+      const courseEntry = purchasedCourses.courses.find(
+        (item) => String(item.courseId) === String(courseId),
+      );
+      if (courseEntry) {
+        courseEntry.progress = progressPercentage;
+        await purchasedCourses.save();
+      }
+    }
 
     res.status(200).json({
       success: true,
-      message: 'Lecture is marked as Viewed',
-      data: progress
-    })
+      message: "Lecture is marked as Viewed",
+      data: progress,
+      progressPercentage,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -131,6 +179,39 @@ const markCurrentCourseLectureAsViewedController = async (req, res) => {
 
 const resetCurrentCourseProgressController = async (req, res) => {
   try {
+    const {userId, courseId} = req.body;
+    const progress = await CourseProgress.findOne({userId, courseId});
+    if(!progress){
+      return res.status(404).json({
+        success: false,
+        message: 'Progress not found'
+      })
+    }
+
+    progress.lecturesProgress = [];
+    progress.completed = false;
+    progress.completionDate = null;
+
+    await progress.save();
+
+    // keep the purchased course progress field in sync
+    const purchasedCourses = await studentCourses.findOne({ userId });
+    if (purchasedCourses) {
+      const courseEntry = purchasedCourses.courses.find(
+        (item) => String(item.courseId) === String(courseId),
+      );
+      if (courseEntry) {
+        courseEntry.progress = 0;
+        await purchasedCourses.save();
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Course progress is resetted",
+      data: progress,
+      progressPercentage: 0,
+    })
   } catch (error) {
     res.status(500).json({
       success: false,
