@@ -26,7 +26,7 @@ export default function VideoPlayer({ url, onProgressUpdate, onProgressData }) {
     const percent = video.currentTime / video.duration; // value between 0 and 1
     setProgress((prev) => Math.max(prev, percent));
 
-    console.log("Video progress:", percent);
+    // console.log("Video progress:", percent);
   };
 
   useEffect(() => {

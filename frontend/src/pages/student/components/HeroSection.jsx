@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-
+import {useNavigate} from 'react-router-dom';
 export default function HeroSection() {
+  const navigate = useNavigate();
   return (
     <section className="bg-background text-primary-foreground py-20 h-screen">
       <div className="container mx-auto px-6 grid md:grid-cols-2 items-center gap-10">
@@ -14,7 +15,7 @@ export default function HeroSection() {
             Build skills with online courses from world-class instructors.
           </p>
 
-          <Button className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold cursor-pointer">
+          <Button className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold cursor-pointer" onClick={()=>navigate('/explore-courses')}>
             Explore Courses
           </Button>
         </div>
