@@ -13,7 +13,7 @@ export default function CTASection() {
         Join thousands of learners from around the world.
       </p>
 
-      <Button className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={()=>navigate('/explore-courses')}>
+      <Button className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 cursor-pointer" onClick={()=>navigate('/explore-courses')}>
         Get Started
       </Button>
     </section>

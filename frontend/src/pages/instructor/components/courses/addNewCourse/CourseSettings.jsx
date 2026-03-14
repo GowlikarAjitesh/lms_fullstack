@@ -107,7 +107,7 @@ export default function CourseSettings() {
             />
 
             <div className="mt-4 flex gap-2">
-              <Button variant="outline" onClick={handleReplaceClick}>
+              <Button variant="outline" onClick={handleReplaceClick} className={"cursor-pointer"}>
                 Replace Image
               </Button>
               <input

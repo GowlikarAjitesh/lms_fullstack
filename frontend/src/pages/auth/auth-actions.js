@@ -41,10 +41,10 @@ export function validateRegister(formData) {
 
 
 export async function registerFormActions(userDetails) {
-  console.log(userDetails);
+  // console.log(userDetails);
   try {
     const res = await axiosInstance.post(`/api/auth/register`, userDetails);
-    console.log("Response from server:", res);
+    // console.log("Response from server:", res);
     return res.data; // success case
   } catch (err) {
     if (err.response) {
@@ -58,10 +58,10 @@ export async function registerFormActions(userDetails) {
 }
 
 export async function loginFormActions(userDetails) {
-  console.log(userDetails);
+  // console.log(userDetails);
   try {
     const res = await axiosInstance.post(`/api/auth/login`, userDetails);
-    console.log("Response from server:", res);
+    // console.log("Response from server:", res);
     return res.data; // success case
   } catch (err) {
     if (err.response) {

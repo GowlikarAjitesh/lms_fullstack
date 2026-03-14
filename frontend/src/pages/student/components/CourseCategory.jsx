@@ -22,7 +22,7 @@ export default function CourseCategory() {
         {courseCategories.map((categoryItem) => (
           <Button
             key={categoryItem.id}
-            className="justify-start text-xl font-semibold gap-2 m-2"
+            className="justify-start text-xl font-semibold gap-2 m-2 cursor-pointer"
             variant={currentCategory === categoryItem.id ? 'secondary' : 'outline'}
             onClick={() => handleCategoryClick(categoryItem.id)}
           >

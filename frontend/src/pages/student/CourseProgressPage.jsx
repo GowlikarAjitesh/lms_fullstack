@@ -49,79 +49,82 @@ export default function CourseProgressPage() {
   const [lastMarkedLectureId, setLastMarkedLectureId] = useState(null);
 
   async function fetchCurrentCourseProgress() {
-  try {
-    const response = await getCurrentCourseProgressService(
-      userDetails?.id,
-      courseId
-    );
+    try {
+      const response = await getCurrentCourseProgressService(
+        userDetails?.id,
+        courseId,
+      );
 
-    if (response?.success) {
-      if (!response?.data?.isPurchased) {
-        setLockCourse(true);
-        setLoading(false);
-        return;
-      }
+      if (response?.success) {
+        if (!response?.data?.isPurchased) {
+          setLockCourse(true);
+          setLoading(false);
+          return;
+        }
 
-      const courseDetails = response?.data?.courseDetails;
-      const progress = response?.data?.progress || [];
-      const curriculum = courseDetails?.curriculum || [];
+        const courseDetails = response?.data?.courseDetails;
+        const progress = response?.data?.progress || [];
+        const curriculum = courseDetails?.curriculum || [];
 
-      setStudentCurrentCourseProgress({
-        courseDetails,
-        progress,
-        progressPercentage: response?.data?.progressPercentage ?? 0,
-      });
+        setStudentCurrentCourseProgress({
+          courseDetails,
+          progress,
+          progressPercentage: response?.data?.progressPercentage ?? 0,
+        });
 
-      // keep the My Courses list in sync
-      if (studentBoughtCoursesList && studentBoughtCoursesList.length > 0) {
-        setStudentBoughtCoursesList((prev) =>
-          prev?.map((course) =>
-            String(course.courseId) === String(courseId)
-              ? { ...course, progress: response?.data?.progressPercentage ?? 0 }
-              : course,
-          ),
+        // keep the My Courses list in sync
+        if (studentBoughtCoursesList && studentBoughtCoursesList.length > 0) {
+          setStudentBoughtCoursesList((prev) =>
+            prev?.map((course) =>
+              String(course.courseId) === String(courseId)
+                ? {
+                    ...course,
+                    progress: response?.data?.progressPercentage ?? 0,
+                  }
+                : course,
+            ),
+          );
+        }
+
+        if (response?.data?.completed) {
+          setShowCourseCompleteDialog(true);
+          setShowConfetti(true);
+        }
+
+        const viewedLectureIds = new Set(
+          progress
+            .filter((item) => item.viewed)
+            .map((item) => String(item.lectureId)),
         );
+
+        const nextLecture = curriculum.find(
+          (lec) => !viewedLectureIds.has(String(lec._id)),
+        );
+
+        const allLecturesViewed = !nextLecture && curriculum.length > 0;
+
+        if (allLecturesViewed) {
+          setCurrentLecture(null);
+          setShowCourseCompleteDialog(true);
+          setShowConfetti(true);
+        } else {
+          setCurrentLecture(nextLecture ?? null);
+        }
       }
-
-      if (response?.data?.completed) {
-        setShowCourseCompleteDialog(true);
-        setShowConfetti(true);
-      }
-
-      const viewedLectureIds = new Set(
-        progress
-          .filter((item) => item.viewed)
-          .map((item) => String(item.lectureId))
-      );
-
-      const nextLecture = curriculum.find(
-        (lec) => !viewedLectureIds.has(String(lec._id))
-      );
-
-      const allLecturesViewed = !nextLecture && curriculum.length > 0;
-
-      if (allLecturesViewed) {
-        setCurrentLecture(null);
-        setShowCourseCompleteDialog(true);
-        setShowConfetti(true);
-      } else {
-        setCurrentLecture(nextLecture ?? null);
-      }
+    } catch (error) {
+      console.error("Error fetching course progress:", error);
+      toast.error("Failed to load course progress");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching course progress:", error);
-    toast.error("Failed to load course progress");
-  } finally {
-    setLoading(false);
   }
-}
 
   async function updateCourseProgress() {
     if (currentLecture) {
       const response = await markCurrentCourseLectureAsViewedService(
         userDetails?.id,
         studentCurrentCourseProgress?.courseDetails?._id,
-        currentLecture?._id
+        currentLecture?._id,
       );
       if (response?.success) {
         fetchCurrentCourseProgress();
@@ -133,8 +136,11 @@ export default function CourseProgressPage() {
     if (!userDetails?.id || !courseId) return;
 
     try {
-      const response = await resetCurrentCourseProgressService(userDetails.id, courseId);
-      if(response?.success){
+      const response = await resetCurrentCourseProgressService(
+        userDetails.id,
+        courseId,
+      );
+      if (response?.success) {
         setShowCourseCompleteDialog(false);
         setShowConfetti(false);
         setLastMarkedLectureId(null);
@@ -179,8 +185,8 @@ export default function CourseProgressPage() {
   }, [showConfetti]);
 
   if (loading) return <Skeleton className="h-[70vh] w-full" />;
-  console.log("student courses", studentCurrentCourseProgress);
-  console.log("current Lecture = ", currentLecture);
+  // console.log("student courses", studentCurrentCourseProgress);
+  // console.log("current Lecture = ", currentLecture);
   return (
     <div className="flex flex-col w-full">
       {showConfetti && <Confetti width={width} height={height} />}
@@ -188,7 +194,11 @@ export default function CourseProgressPage() {
       {/* HEADER */}
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="cursor-pointer"
+          >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Back
           </Button>
@@ -197,9 +207,10 @@ export default function CourseProgressPage() {
             {studentCurrentCourseProgress?.courseDetails?.title}
           </h1>
         </div>
-        <div>
+        <div className="cursor-pointer"
+            onClick={() => setIsSideBarOpen(!isSideBarOpen)}>
           <Button
-            className="hover:bg-transparent bg-transparent"
+            className="hover:bg-transparent bg-transparent cursor-pointer"
             variant="ghost"
             onClick={() => setIsSideBarOpen(!isSideBarOpen)}
           >
@@ -209,21 +220,21 @@ export default function CourseProgressPage() {
               <ChevronLeft className="h-5 w-5" />
             )}
           </Button>
-      <span>
-        {`${
-          studentCurrentCourseProgress?.courseDetails?.curriculum?.length
-            ? Math.round(
-                (studentCurrentCourseProgress?.progress?.filter(
-                  (item) => item.viewed,
-                ).length /
-                  studentCurrentCourseProgress.courseDetails.curriculum
-                    .length) *
-                  100,
-              )
-            : 0
-        } %`}{" "}
-        Completed
-      </span>
+          <span>
+            {`${
+              studentCurrentCourseProgress?.courseDetails?.curriculum?.length
+                ? Math.round(
+                    (studentCurrentCourseProgress?.progress?.filter(
+                      (item) => item.viewed,
+                    ).length /
+                      studentCurrentCourseProgress.courseDetails.curriculum
+                        .length) *
+                      100,
+                  )
+                : 0
+            } %`}{" "}
+            Completed
+          </span>
         </div>
       </div>
 
@@ -254,13 +265,13 @@ export default function CourseProgressPage() {
               <TabsList className="grid bg-[#1c1d1f] text-white w-full grid-cols-2 p-0 h-14">
                 <TabsTrigger
                   value="content"
-                  className="text-white rounded-none h-full"
+                  className="text-white rounded-none h-full cursor-pointer"
                 >
                   Course Content
                 </TabsTrigger>
                 <TabsTrigger
                   value="overview"
-                  className="text-white rounded-none h-full"
+                  className="text-white rounded-none h-full cursor-pointer"
                 >
                   Overview
                 </TabsTrigger>
@@ -275,9 +286,14 @@ export default function CourseProgressPage() {
                           className="flex items-center space-x-2 text-sm text-white font-semibold cursor-pointer"
                           key={item?._id}
                         >
-                          {
-                            studentCurrentCourseProgress?.progress?.find((progressItem) => progressItem.lectureId === item._id)?.viewed ? <Check className="h-4 w-4 text-green-500"/> : <Play className="h-4 w-4"/>
-                          }
+                          {studentCurrentCourseProgress?.progress?.find(
+                            (progressItem) =>
+                              progressItem.lectureId === item._id,
+                          )?.viewed ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Play className="h-4 w-4" />
+                          )}
                           <span>{item?.title}</span>
                         </div>
                       ),
@@ -314,7 +330,10 @@ export default function CourseProgressPage() {
 
           <div className="flex justify-end">
             <DialogClose asChild>
-              <Button onClick={() => navigate(`/course/details/${courseId}`)}>
+              <Button
+                onClick={() => navigate(`/course/details/${courseId}`)}
+                className="cursor-pointer"
+              >
                 Go to Course
               </Button>
             </DialogClose>
@@ -331,11 +350,18 @@ export default function CourseProgressPage() {
               <Label>You have completed the course</Label>
 
               <div className="flex gap-3">
-                <Button onClick={() => navigate(`/explore-courses`)}>
+                <Button
+                  onClick={() => navigate(`/explore-courses`)}
+                  className="cursor-pointer"
+                >
                   Browse Courses
                 </Button>
 
-                <Button variant="outline" onClick={restartCourse}>
+                <Button
+                  variant="outline"
+                  onClick={restartCourse}
+                  className="cursor-pointer"
+                >
                   Restart Course
                 </Button>
               </div>

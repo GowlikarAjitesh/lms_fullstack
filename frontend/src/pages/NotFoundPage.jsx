@@ -10,7 +10,7 @@ export default function NotFoundPage() {
       <p className="text-muted-foreground mt-2 mb-6">
         Sorry, the page you are looking for doesn't exist or has been moved.
       </p>
-      <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+      <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
         <Link to="/">Go back Home</Link>
       </Button>
     </div>

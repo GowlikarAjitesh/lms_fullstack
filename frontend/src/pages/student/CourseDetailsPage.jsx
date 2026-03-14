@@ -90,7 +90,7 @@ export default function CourseDetailsPage() {
     };
 
     try {
-      console.log("Payment Payload = ", paymentPayload);
+      // console.log("Payment Payload = ", paymentPayload);
       const result = await createPaymentService(paymentPayload);
       if (result?.success) {
         sessionStorage.setItem(
@@ -144,18 +144,18 @@ export default function CourseDetailsPage() {
     checkPurchase();
   }, [currentCourseId, userDetails, navigate]);
 
-  console.log(currentCourseDetails, "currentCourseDetails");
-  console.log(freePreviewLecturesList, "lectureList");
+  // console.log(currentCourseDetails, "currentCourseDetails");
+  // console.log(freePreviewLecturesList, "lectureList");
 
   const getIndexOfFreePreviewUrl =
   currentCourseDetails?.curriculum?.findIndex((item) => item.freePreview) ?? -1;
 
-  console.log(getIndexOfFreePreviewUrl, "url");
+  // console.log(getIndexOfFreePreviewUrl, "url");
 
   if (globalLoadingState) return <Skeleton className="h-screen w-full" />;
 
   if (approvalUrl != "") {
-    console.log("approval URL = ", approvalUrl);
+    // console.log("approval URL = ", approvalUrl);
     window.location.href = approvalUrl;
   }
 

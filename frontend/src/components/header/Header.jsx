@@ -68,10 +68,10 @@ export default function Header() {
     userDetails?.role == "instructor" || userDetails?.role == "admin";
     if(location.pathname.includes('course-progress')) return null;
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 overflow-x-hidden">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-full">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 overflow-x-hidden mr-5">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-lvw ">
         {/* Left Side: Logo */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 ml-4">
           <Link to="/" className="flex items-center gap-2">
             <div className="bg-primary p-1.5 rounded-lg">
               <BookOpen className="h-6 w-6 text-primary-foreground" />
@@ -86,9 +86,11 @@ export default function Header() {
             <>
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-                <Link to="/explore-courses" className="hover:text-foreground transition-colors">
+                
+                {isAuth && (<Link to="/explore-courses" className="hover:text-foreground transition-colors">
                   Explore
                 </Link>
+                )}
                 {isAuth && (
                   <Link
                     to="/my-courses"
@@ -103,16 +105,16 @@ export default function Header() {
         </div>
 
         {/* Middle: Search Bar (Hidden on mobile) */}
-        <div className={`hidden lg:flex flex-1 max-w-md mx-8 ${isInstructor ? 'hidden' : 'hidden'}`}>
-          <div className={`relative w-full ${isInstructor ? 'hidden' : 'hidden'}`}>
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className={`hidden lg:flex flex-1 max-w-md mx-8 `}>
+          <div className={`relative w-full`}>
+            <Search className={`absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground hidden`} />
             <Input
               type="search"
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search for courses..."
-              className={`w-full bg-input border-border pl-9 text-foreground focus-visible:ring-ring `}
+              className={`w-full bg-input border-border pl-9 text-foreground focus-visible:ring-ring hidden`}
             />
           </div>
         </div>
@@ -173,7 +175,7 @@ export default function Header() {
                   align="end"
                   alignOffset={-8}
                   sideOffset={8}
-                  className="w-56 !bg-card !text-foreground border-border !shadow-lg"
+                  className="w-56 bg-card! text-foreground! border-border shadow-lg!"
                 >
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">

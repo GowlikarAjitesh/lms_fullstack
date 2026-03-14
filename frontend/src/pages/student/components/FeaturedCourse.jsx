@@ -8,9 +8,9 @@ export default function FeaturedCourses() {
   const {studentCoursesList, setStudentCoursesList} = useContext(StudentContext);
   async function fetchAllCoursesList(){
     const coursesList = await getAllCoursesToStudentService();
-    console.log(coursesList);
+    // console.log(coursesList);
     if(coursesList.success){
-      console.log("success ",coursesList.data);
+      // console.log("success ",coursesList.data);
       setStudentCoursesList(coursesList?.data);
     }
 };

@@ -77,7 +77,7 @@ export default function InstructorDashboard() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={() => navigate("/instructor/newCourse")}>
+            <Button onClick={() => navigate("/instructor/newCourse")} className="cursor-pointer">
               <Plus className="mr-2 h-4 w-4" />
               Create Course
             </Button>

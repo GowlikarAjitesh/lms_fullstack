@@ -12,7 +12,7 @@ export default function MyCoursesPage() {
   const navigate = useNavigate();
   const { userDetails } = useContext(AuthContext);
   const studentId = userDetails?.id;
-  console.log("Student Id: ", studentId);
+  // console.log("Student Id: ", studentId);
   const { studentBoughtCoursesList, setStudentBoughtCoursesList } =
     useContext(StudentContext);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +25,7 @@ export default function MyCoursesPage() {
 
     if (result?.success) {
       setStudentBoughtCoursesList(result?.data?.courses);
-      console.log(result.data);
+      // console.log(result.data);
     }
 
     setIsLoading(false);
@@ -41,10 +41,10 @@ export default function MyCoursesPage() {
     getStudentBoughtCoursesList(studentId);
   }, [studentId]);
 
-  console.log("Student Bought course: ", studentBoughtCoursesList);
+  // console.log("Student Bought course: ", studentBoughtCoursesList);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground w-full">
       {/* Header */}
       <div className="max-w-6xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold">My Courses</h1>
@@ -73,17 +73,17 @@ export default function MyCoursesPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
             {studentBoughtCoursesList.map((course) => (
               <Card
                 key={course.courseId}
-                className="flex flex-col md:flex-row overflow-hidden bg-card border-border"
+                className="flex flex-col md:flex-row overflow-hidden bg-card border-border items-center gap-4"
               >
                 {/* Image */}
                 <img
                   src={course.courseImage}
                   alt={course.title}
-                  className="w-full md:w-56 h-48 object-cover"
+                  className="ml-4 w-full md:w-56 h-48 object-cover"
                 />
 
                 {/* Content */}

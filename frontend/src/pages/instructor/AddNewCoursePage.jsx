@@ -26,7 +26,7 @@ import {
 
 export default function AddNewCoursePage() {
   const { userDetails } = useContext(AuthContext);
-  console.log("This is userDetails from addNewCoursePage = ", userDetails.id);
+  // console.log("This is userDetails from addNewCoursePage = ", userDetails.id);
 
   const {
     courseLandingFormData,

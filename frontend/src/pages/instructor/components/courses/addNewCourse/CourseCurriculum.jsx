@@ -158,7 +158,7 @@ async function handleBulkUploadInputChange(event) {
 
   const formData = new FormData();
   Array.from(files).forEach(file => {
-    console.log("Bulk upload file:", file);
+    // console.log("Bulk upload file:", file);
     formData.append("files", file);
   });
 

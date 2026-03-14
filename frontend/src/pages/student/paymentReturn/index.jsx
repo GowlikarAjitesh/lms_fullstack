@@ -15,7 +15,7 @@ function PaypalPaymentReturnPage() {
             const result = await captureAndFinalizePaymentService({paymentId, payerId, orderId});
 
             if(result?.success){
-                console.log("payment processed = ", result.data);
+                // console.log("payment processed = ", result.data);
                 sessionStorage.removeItem('currentOrderId');
                 window.location.href = '/my-courses';
             }

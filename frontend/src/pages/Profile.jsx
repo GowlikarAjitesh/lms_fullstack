@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import AuthContext from "@/context/auth-context";
+import AuthContext, { sanitizeUserDetails } from "@/context/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -63,10 +63,10 @@ export default function Profile() {
       if (result?.success) {
         const updated = result.data;
         setUserDetails((prev) => {
-          const next = {
+          const next = sanitizeUserDetails({
             ...prev,
             profileImage: updated.profileImage,
-          };
+          });
           localStorage.setItem("userDetails", JSON.stringify(next));
           return next;
         });
@@ -113,13 +113,13 @@ export default function Profile() {
 
         // keep context in sync
         setUserDetails((prev) => {
-          const next = {
+          const next = sanitizeUserDetails({
             ...prev,
             username: updated.username,
             email: updated.email,
             bio: updated.bio,
             phone: updated.phone,
-          };
+          });
           localStorage.setItem("userDetails", JSON.stringify(next));
           return next;
         });
@@ -264,7 +264,7 @@ export default function Profile() {
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className={"cursor-pointer"}>
                   {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
@@ -340,7 +340,7 @@ export default function Profile() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={passwordLoading}>
+                  <Button type="submit" disabled={passwordLoading} className={"cursor-pointer"}>
                     {passwordLoading ? "Updating..." : "Update Password"}
                   </Button>
                 </div>

@@ -124,7 +124,7 @@ export default function InstructorCourses() {
       <Card>
         <CardHeader className="flex justify-between flex-row items-center">
           <CardTitle className="text-3xl font-extrabold">All Courses</CardTitle>
-          <Button onClick={handleAddNewCourse}>
+          <Button onClick={handleAddNewCourse} className={"cursor-pointer"}>
             <Plus className="h-4 w-4" />
             Add New
           </Button>

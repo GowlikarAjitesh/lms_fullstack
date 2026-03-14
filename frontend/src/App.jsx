@@ -14,6 +14,7 @@ import Dashboard from '@/pages/Dashboard'
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 
 // Student Pages
 import Home from "@/pages/student/Home";
@@ -46,6 +47,7 @@ function App() {
         <Route path="/" element={<Layout />}>
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/dashboard" element={<Dashboard/>}/>
+              {/* <Route path="explore-courses" element={<ExploreCoursesPage/>}/> */}
 
         {/* 🔐 Global Route Guard */}
         <Route
@@ -63,6 +65,7 @@ function App() {
             <Route path="/auth/login" element={<LoginPage />} />
             <Route path="/auth/register" element={<RegisterPage />} />
             <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
             {/* <Route path="/" element={<Home />} /> */}
 
 

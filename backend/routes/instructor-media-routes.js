@@ -13,9 +13,9 @@ const upload = multer({ dest: "uploads/" });
 
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    console.log("req.file:", req.file);
+    // console.log("req.file:", req.file);
     const { publicId } = req.body;
-    console.log("from upload/ replace  instructor-route = ", publicId);
+    // console.log("from upload/ replace  instructor-route = ", publicId);
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -45,7 +45,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
 router.delete("/delete/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("from delete instructor - routes = ", id);
+    // console.log("from delete instructor - routes = ", id);
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -53,7 +53,7 @@ router.delete("/delete/:id", async (req, res) => {
       });
     }
     const result = await deleteMediaFromCloudinary(id);
-    console.log(result);
+    // console.log(result);
     if (!result) {
       return res.status(400).json({
         success: false,
@@ -74,7 +74,7 @@ router.delete("/delete/:id", async (req, res) => {
 
 router.post("/bulk-upload", upload.array("files", 10), async (req, res) => {
   try {
-    console.log("req.bulk files:", req.files);
+    // console.log("req.bulk files:", req.files);
     const { publicId } = req.body;
     if (!req.files) {
       return res.status(400).json({

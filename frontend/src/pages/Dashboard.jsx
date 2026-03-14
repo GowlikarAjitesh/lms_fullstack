@@ -119,16 +119,16 @@ export default function Dashboard() {
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate("/profile")}>
+              <Button variant="outline" onClick={() => navigate("/profile")} className={"cursor-pointer"}>
                 View Profile
               </Button>
 
               {userRole === "instructor" ? (
-                <Button onClick={() => navigate("/instructor/newCourse")}>
+                <Button onClick={() => navigate("/instructor/newCourse")} className={"cursor-pointer"}>
                   Create Course
                 </Button>
               ) : (
-                <Button onClick={() => navigate("/explore-courses")}>
+                <Button onClick={() => navigate("/explore-courses")} className={"cursor-pointer"}>
                   Browse Courses
                 </Button>
               )}

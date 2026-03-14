@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+
 const registerController = async (req, res) => {
   try {
     const { username, email, password, confirmPassword } = req.body;
@@ -20,7 +22,7 @@ const registerController = async (req, res) => {
     if (isValidUsername) {
       return res.status(400).json({
         success: false,
-        message: "Username is alreay in use",
+        message: "Username is already in use",
       });
     }
     const isValidEmail = await User.findOne({ email: email });
@@ -122,7 +124,46 @@ const loginController = async (req, res) => {
 
 const forgotPasswordController = async (req, res) => {
   try {
+    const { email } = req.body;
+    if (!email || email.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+
+    // Always respond with success to avoid leaking which emails are registered.
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, a reset link has been sent.",
+      });
+    }
+
+    const token = crypto.randomBytes(20).toString("hex");
+    const expires = Date.now() + 1000 * 60 * 60; // 1 hour
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(expires);
+    await user.save();
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetUrl = `${clientUrl}/auth/reset-password?token=${encodeURIComponent(
+      token,
+    )}&email=${encodeURIComponent(user.email)}`;
+
+    // TODO: Send this link via email. For now, log it for development.
+    console.log("[Forgot password] reset link:", resetUrl);
+
+    return res.status(200).json({
+      success: true,
+      message: "If an account with that email exists, a reset link has been sent.",
+      resetUrl,
+    });
   } catch (error) {
+    console.error("forgotPasswordController error", error);
     res.status(500).json({
       success: false,
       message: "Something went wrong",
@@ -130,10 +171,58 @@ const forgotPasswordController = async (req, res) => {
   }
 };
 
+const resetPasswordController = async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
 
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token, password and confirmPassword are required",
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token is invalid or has expired",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.error("resetPasswordController error", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
 
 module.exports = {
   registerController,
   loginController,
   forgotPasswordController,
+  resetPasswordController,
 };

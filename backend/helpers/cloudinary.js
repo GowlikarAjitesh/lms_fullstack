@@ -26,7 +26,7 @@ const uploadMediaToCloudinary = async (filePath, existingPublicId = null) => {
       secure: true
     });
 
-    console.log("Media processed. Type:", result.resource_type);
+    // console.log("Media processed. Type:", result.resource_type);
     return { ...result, url };
   } catch (error) {
     console.error("Cloudinary Error:", error.message);

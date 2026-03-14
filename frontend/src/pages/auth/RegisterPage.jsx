@@ -11,6 +11,14 @@ import { RegisterSchema } from "@/common/yupSchema"; // your validation schema
 import { registerFormActions } from "./auth-actions"; // your server action
 import axios from "axios";
 import { toast } from "react-toastify";
+import { ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const BACKEND_URL =  "http://localhost:3000";
 
@@ -38,7 +46,7 @@ export default function RegisterPage() {
             }}
             validationSchema={RegisterSchema}
             onSubmit={async (values, { setSubmitting }) => {
-              console.log("Form submitted:", values);
+              // console.log("Form submitted:", values);
               setSubmitting(true);
               const response = await registerFormActions(values);
               if (response.success) {
@@ -89,20 +97,29 @@ export default function RegisterPage() {
 
                 {/* Role */}
                 <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Field
-                    as="select"
-                    id="role"
-                    name="role"
-                    className="w-full rounded-md border bg-input px-3 py-2 text-foreground"
-                  >
-                    <option value="user">Student</option>
-                    <option value="instructor">Instructor</option>
-                  </Field>
-                  <ErrorMessage name="role" component="p" className="text-destructive text-sm" />
-                </div>
+  <Label htmlFor="role">Role</Label>
 
-                <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+  <Field name="role">
+    {({ field, form }) => (
+      <Select
+        value={field.value}
+        onValueChange={(value) => form.setFieldValue("role", value)}
+      >
+        <SelectTrigger className="w-full bg-input border-border text-foreground">
+          <SelectValue placeholder="Select a role" />
+        </SelectTrigger>
+        <SelectContent className="bg-card text-foreground border-border">
+          <SelectItem value="user">Student</SelectItem>
+          <SelectItem value="instructor">Instructor</SelectItem>
+        </SelectContent>
+      </Select>
+    )}
+  </Field>
+
+  <ErrorMessage name="role" component="p" className="text-destructive text-sm" />
+</div>
+
+                <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
                   {isSubmitting ? "Registering..." : "Register"}
                 </Button>
               </Form>

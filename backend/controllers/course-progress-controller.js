@@ -15,7 +15,7 @@ const calculateProgressPercentage = (course, progressList = []) => {
 const getCurrentCourseProgressController = async (req, res) => {
   try {
     const { userId, courseId } = req.params;
-    console.log("From course Progress page = ", userId, courseId);
+    // console.log("From course Progress page = ", userId, courseId);
     const studentPurchasedCourses = await studentCourses.findOne({ userId });
 
     const isCurrentCoursePurchasedByCurrentUser =

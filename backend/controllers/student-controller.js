@@ -91,7 +91,7 @@ const getSingleCourseToStudentView = async (req, res) => {
 const checkSingleCoursePurchasedController = async (req, res) => {
   try {
     const { courseId, studentId } = req.params;
-    console.log("THis is checkPurchased = ", courseId, studentId);
+    // console.log("THis is checkPurchased = ", courseId, studentId);
 
     const studentBoughtCourses = await studentCourses.findOne({
       userId: studentId,

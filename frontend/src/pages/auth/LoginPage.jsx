@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import PasswordInput from "@/components/PasswordInput";
-import AuthContext from "@/context/auth-context";
+import AuthContext, { sanitizeUserDetails } from "@/context/auth-context";
 export default function LoginPage() {
 
   const {setIsAuth, setUserDetails} = useContext(AuthContext);
@@ -32,10 +32,7 @@ export default function LoginPage() {
     if (response.success) {
       toast.success(response.message || "Login successful!");
 
-      const user = {
-        ...response.data,
-        id: response.data.id || response.data._id,
-      };
+      const user = sanitizeUserDetails(response.data);
 
       localStorage.setItem("accessToken", response.token);
       localStorage.setItem("userDetails", JSON.stringify(user));
@@ -51,7 +48,7 @@ export default function LoginPage() {
         navigate(from || "/", { replace: true });
       }
 
-      console.log("Navigation = ", user?.role === "instructor");
+      // console.log("Navigation = ", user?.role === "instructor");
     } else {
       toast.error(
         response.message ||
@@ -106,7 +103,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
                 >
                   {isSubmitting ? "Logging In..." : "Login"}
                 </Button>

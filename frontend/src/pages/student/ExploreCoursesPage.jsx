@@ -54,14 +54,14 @@ export default function ExploreCoursesPage() {
     const indexOfCurrentSeection =
       Object.keys(cpyFilters).indexOf(getSectionId);
 
-    console.log(indexOfCurrentSeection, getSectionId);
+    // console.log(indexOfCurrentSeection, getSectionId);
     if (indexOfCurrentSeection === -1) {
       cpyFilters = {
         ...cpyFilters,
         [getSectionId]: [getCurrentOption.id],
       };
 
-      console.log(cpyFilters);
+      // console.log(cpyFilters);
     } else {
       const indexOfCurrentOption = cpyFilters[getSectionId].indexOf(
         getCurrentOption.id,
@@ -106,7 +106,7 @@ export default function ExploreCoursesPage() {
 
 
   async function handleCourseNavigate(courseId, studentId){
-    console.log("THis is handleCourseNavigate = ", courseId, studentId);
+    // console.log("THis is handleCourseNavigate = ", courseId, studentId);
     const result = await checkSingleCoursePurchasedService(courseId, studentId);
     if(result?.success){
       if(result?.data){
@@ -116,7 +116,7 @@ export default function ExploreCoursesPage() {
         navigate(`/course/details/${courseId}`);
       }
     }else{
-      console.log('Hey i came to false condition...')
+      // console.log('Hey i came to false condition...')
         navigate(`/course/details/${courseId}`);
       }
   }
@@ -195,9 +195,9 @@ export default function ExploreCoursesPage() {
     if (filters !== null && sort !== null) fetchCoursesList(filters, sort, search, instructorId);
   }, [filters, sort, search, instructorId]);
 
-  console.log("Filters = ", filters);
-  console.log("coursesList = ", studentCoursesList);
-  console.log("UserDetails = ", userDetails);
+  // console.log("Filters = ", filters);
+  // console.log("coursesList = ", studentCoursesList);
+  // console.log("UserDetails = ", userDetails);
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Page Wrapper */}

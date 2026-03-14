@@ -21,7 +21,7 @@ connectToDB();
 
 //cors
 const allowedOrigins = [process.env.CLIENT_URL, "http://localhost:5173", "http://localhost:5174"];
-console.log(allowedOrigins);
+// console.log(allowedOrigins);
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {

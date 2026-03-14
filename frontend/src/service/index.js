@@ -9,7 +9,7 @@ export async function mediaUploadService(formData, onProgressCallback) {
       onProgressCallback(percentCompleted);
     },
   });
-  console.log("Media upload service = ", data);
+  // console.log("Media upload service = ", data);
   return data;
 }
 
@@ -62,7 +62,7 @@ export async function mediaBulkUploadService(formData, onProgressCallback) {
       onProgressCallback(percentCompleted);
     },
   });
-  console.log("Media service = ", data);
+  // console.log("Media service = ", data);
   return data;
 }
 
@@ -181,5 +181,19 @@ export async function getAllUsersService(role) {
 
 export async function getAllInstructorsService() {
   const {data} = await axiosInstance.get(`/api/instructors/`);
+  return data;
+}
+
+export async function forgotPasswordService(email) {
+  const { data } = await axiosInstance.post(`/api/auth/forgot-password`, { email });
+  return data;
+}
+
+export async function resetPasswordService({ token, password, confirmPassword }) {
+  const { data } = await axiosInstance.post(`/api/auth/reset-password`, {
+    token,
+    password,
+    confirmPassword,
+  });
   return data;
 }

@@ -60,7 +60,7 @@ export default function InstructorSection() {
               <Button
                 key={instructor._id}
                 variant="outline"
-                className="flex flex-col items-center p-6 rounded-xl shadow-md text-left h-auto"
+                className="flex flex-col items-center p-6 rounded-xl shadow-md text-left h-auto cursor-pointer"
                 onClick={() => handleInstructorClick(instructor._id)}
               >
                 {instructor.profileImage ? (

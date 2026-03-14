@@ -1,11 +1,18 @@
 const express = require('express');
-const { registerController, loginController } = require('../controllers/auth-controller');
+const {
+  registerController,
+  loginController,
+  forgotPasswordController,
+  resetPasswordController,
+} = require('../controllers/auth-controller');
 const AuthMiddleware = require('../middleware/auth-middleware');
 const User = require('../models/user');
 const router = express.Router();
 
 router.post('/register', registerController);
 router.post('/login', loginController);
+router.post('/forgot-password', forgotPasswordController);
+router.post('/reset-password', resetPasswordController);
 
 router.get('/check-auth', AuthMiddleware, async (req, res) => {
   try {
