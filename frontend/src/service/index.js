@@ -127,6 +127,32 @@ export async function resetCurrentCourseProgressService(userId, courseId){
   return data;
 }
 
+export async function updateProfileService(profileData) {
+  const { data } = await axiosInstance.put(`/api/user/update-profile`, profileData);
+  return data;
+}
+
+export async function uploadProfileImageService(formData, onProgressCallback) {
+  const { data } = await axiosInstance.post(`/api/user/upload-profile-image`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    onUploadProgress: (progressEvent) => {
+      if (!onProgressCallback) return;
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total
+      );
+      onProgressCallback(percentCompleted);
+    },
+  });
+  return data;
+}
+
+export async function changePasswordService(payload) {
+  const { data } = await axiosInstance.post(`/api/user/change-password`, payload);
+  return data;
+}
+
 export async function requestInstructorService(body) {
   const { data } = await axiosInstance.post(`/api/user/instructor-request`, body);
   return data;
@@ -150,5 +176,10 @@ export async function rejectInstructorRequestService(userId) {
 export async function getAllUsersService(role) {
   const params = role ? `?role=${encodeURIComponent(role)}` : "";
   const { data } = await axiosInstance.get(`/api/admin/users${params}`);
+  return data;
+}
+
+export async function getAllInstructorsService() {
+  const {data} = await axiosInstance.get(`/api/instructors/`);
   return data;
 }

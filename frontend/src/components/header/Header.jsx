@@ -160,7 +160,7 @@ export default function Header() {
                   >
                     <Avatar className="h-10 w-10 border border-border">
                       <AvatarImage
-                        src={userDetails?.avatar}
+                        src={userDetails?.profileImage}
                         alt={userDetails?.username}
                       />
                       <AvatarFallback className="bg-primary text-primary-foreground">

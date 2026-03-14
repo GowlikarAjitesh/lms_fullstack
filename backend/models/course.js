@@ -23,6 +23,7 @@ const CourseSchema = new mongoose.Schema(
     objectives: String,
     welcomeMessage: String,
     image: String,
+    imagePublicId: String,
     tags: [String],
     students: [
       {
@@ -33,7 +34,10 @@ const CourseSchema = new mongoose.Schema(
       },
     ],
     curriculum: [LectureSchema],
-    isPublished: Boolean,
+    isPublished: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

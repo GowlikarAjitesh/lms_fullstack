@@ -44,6 +44,7 @@ export default function ExploreCoursesPage() {
     }
   });
   const [search, setSearch] = useState("");
+  const [instructorId, setInstructorId] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const { studentCoursesList, setStudentCoursesList, globalLoadingState, setGlobalLoadingState } =
     useContext(StudentContext);
@@ -74,7 +75,7 @@ export default function ExploreCoursesPage() {
     setFilters(cpyFilters);
     sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
   }
-  async function fetchCoursesList(filters, sort, search) {
+  async function fetchCoursesList(filters, sort, search, instructorId) {
     const params = new URLSearchParams();
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -89,6 +90,10 @@ export default function ExploreCoursesPage() {
 
     if (search?.trim()) {
       params.set("search", search.trim());
+    }
+
+    if (instructorId) {
+      params.set("instructorId", instructorId);
     }
 
     const coursesList = await getAllCoursesToStudentService(params);
@@ -137,6 +142,7 @@ export default function ExploreCoursesPage() {
     // Initialize state from query params when the page loads (or when user navigates via header search)
     const urlSearch = searchParams.get("search") || "";
     const urlSort = searchParams.get("sortBy") || "";
+    const urlInstructorId = searchParams.get("instructorId") || "";
     const initialFilters = {};
 
     Object.keys(filterOptions).forEach((key) => {
@@ -148,6 +154,7 @@ export default function ExploreCoursesPage() {
 
     if (urlSearch) setSearch(urlSearch);
     if (urlSort) setSort(urlSort);
+    if (urlInstructorId) setInstructorId(urlInstructorId);
     if (Object.keys(initialFilters).length) {
       setFilters(initialFilters);
       sessionStorage.setItem("filters", JSON.stringify(initialFilters));
@@ -172,8 +179,12 @@ export default function ExploreCoursesPage() {
       params.set("search", search.trim());
     }
 
+    if (instructorId) {
+      params.set("instructorId", instructorId);
+    }
+
     setSearchParams(params);
-  }, [filters, sort, search, setSearchParams]);
+  }, [filters, sort, search, instructorId, setSearchParams]);
 
   // useEffect(() => {
   //   setSort((prev) => prev || "price-lowToHigh");
@@ -181,8 +192,8 @@ export default function ExploreCoursesPage() {
   // }, []);
 
   useEffect(() => {
-    if (filters !== null && sort !== null) fetchCoursesList(filters, sort, search);
-  }, [filters, sort, search]);
+    if (filters !== null && sort !== null) fetchCoursesList(filters, sort, search, instructorId);
+  }, [filters, sort, search, instructorId]);
 
   console.log("Filters = ", filters);
   console.log("coursesList = ", studentCoursesList);

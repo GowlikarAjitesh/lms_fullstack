@@ -34,15 +34,16 @@ export default function RegisterPage() {
               email: "",
               password: "",
               confirmPassword: "",
+              role: "user", // store as "user" on backend (student)
             }}
             validationSchema={RegisterSchema}
             onSubmit={async (values, { setSubmitting }) => {
               console.log("Form submitted:", values);
               setSubmitting(true);
               const response = await registerFormActions(values);
-              if(response.success){
+              if (response.success) {
                 toast.success(response.message || "Registration successful!");
-                Navigate('/auth/login');
+                Navigate("/auth/login");
               } else {
                 toast.error(response.message || "Registration failed. Please try again.");
               }
@@ -85,6 +86,21 @@ export default function RegisterPage() {
                 {/* Confirm Password */}
                 <PasswordInput id="confirmPassword" name="confirmPassword" label="Confirm Password" />
                 <ErrorMessage name="confirmPassword" component="p" className="text-destructive text-sm" />
+
+                {/* Role */}
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Field
+                    as="select"
+                    id="role"
+                    name="role"
+                    className="w-full rounded-md border bg-input px-3 py-2 text-foreground"
+                  >
+                    <option value="user">Student</option>
+                    <option value="instructor">Instructor</option>
+                  </Field>
+                  <ErrorMessage name="role" component="p" className="text-destructive text-sm" />
+                </div>
 
                 <Button type="submit" disabled={isSubmitting} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   {isSubmitting ? "Registering..." : "Register"}

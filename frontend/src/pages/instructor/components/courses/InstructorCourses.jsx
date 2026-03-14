@@ -57,9 +57,51 @@ export default function InstructorCourses() {
     navigate("/instructor/newCourse");
   };
 
+  const isCoursePublishable = (course) => {
+    // Match the validation behavior from AddNewCoursePage:
+    // All landing form fields must be non-empty, plus there must be at least one lecture with title + video.
+    const isNonEmpty = (value) => {
+      if (value === null || value === undefined) return false;
+      if (typeof value === "string") return value.trim().length > 0;
+      if (typeof value === "number") return true;
+      return Boolean(value);
+    };
+
+    const requiredFields = [
+      "title",
+      "description",
+      "category",
+      "level",
+      "pricing",
+      "image",
+      "welcomeMessage",
+      "objectives",
+    ];
+
+    const hasAllLandingData = requiredFields.every((field) =>
+      isNonEmpty(course[field])
+    );
+
+    const hasLecture = course.curriculum?.some(
+      (lecture) =>
+        Boolean(lecture?.title?.trim()) &&
+        Boolean(lecture?.videoUrl?.trim()) &&
+        lecture.freePreview === true
+    );
+
+    return Boolean(hasAllLandingData && hasLecture);
+  };
+
   const handleTogglePublish = async (course) => {
     const updatedStatus = !course.isPublished;
-    console.log(updatedStatus, "status");
+
+    if (updatedStatus && !isCoursePublishable(course)) {
+      toast.error(
+        "Complete the course details (metadata + at least one lecture with video) before publishing."
+      );
+      return;
+    }
+
     const response = await togglePublishCourseService(course._id, updatedStatus);
 
     if (response?.success) {
@@ -119,16 +161,22 @@ export default function InstructorCourses() {
                     </TableCell>
 
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          checked={!!course.isPublished}
-                          onCheckedChange={() => handleTogglePublish(course)}
-                          className="cursor-pointer"
-                        />
-                        <span className="text-sm">
-                          {course.isPublished ? "Published" : "Unpublished"}
+                      {isCoursePublishable(course) ? (
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={!!course.isPublished}
+                            onCheckedChange={() => handleTogglePublish(course)}
+                            className="cursor-pointer"
+                          />
+                          <span className="text-sm">
+                            {course.isPublished ? "Published" : "Unpublished"}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm font-medium text-orange-600">
+                          Draft
                         </span>
-                      </div>
+                      )}
                     </TableCell>
 
                     <TableCell className="text-right">

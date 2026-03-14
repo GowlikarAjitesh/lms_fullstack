@@ -1,18 +1,68 @@
 const Course = require('../models/course');
 const CourseProgress = require('../models/courseProgress');
 
+const validateCourseBeforePublish = (courseDetails) => {
+  if (!courseDetails || !Array.isArray(courseDetails.curriculum)) return false;
+
+  // Required basic course metadata (same as AddNewCoursePage validation)
+  const hasRequiredMetadata =
+    typeof courseDetails.title === "string" &&
+    courseDetails.title.trim().length > 0 &&
+    typeof courseDetails.description === "string" &&
+    courseDetails.description.trim().length > 0 &&
+    typeof courseDetails.category === "string" &&
+    courseDetails.category.trim().length > 0 &&
+    typeof courseDetails.level === "string" &&
+    courseDetails.level.trim().length > 0 &&
+    (typeof courseDetails.pricing === "number" || typeof courseDetails.pricing === "string") &&
+    String(courseDetails.pricing).trim().length > 0 &&
+    typeof courseDetails.image === "string" &&
+    courseDetails.image.trim().length > 0 &&
+    typeof courseDetails.welcomeMessage === "string" &&
+    courseDetails.welcomeMessage.trim().length > 0 &&
+    typeof courseDetails.objectives === "string" &&
+    courseDetails.objectives.trim().length > 0;
+
+  if (!hasRequiredMetadata) return false;
+
+  // A course must have at least one lecture with title + video URL + freePreview to publish
+  const hasValidLecture = courseDetails.curriculum.some(
+    (lecture) =>
+      lecture &&
+      typeof lecture.title === "string" &&
+      lecture.title.trim().length > 0 &&
+      typeof lecture.videoUrl === "string" &&
+      lecture.videoUrl.trim().length > 0 &&
+      lecture.freePreview === true
+  );
+
+  return hasValidLecture;
+};
+
 const createNewCourseController = async (req, res) => {
     try {
         const courseDetails = req.body;
         if(!courseDetails){
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Course Details are Incorrect'
             })
         }
+
+        if (courseDetails.isPublished) {
+          const canPublish = validateCourseBeforePublish(courseDetails);
+          if (!canPublish) {
+            return res.status(400).json({
+              success: false,
+              message:
+                'Cannot publish course without at least one lecture with a title and video.',
+            });
+          }
+        }
+
         const newlyCreatedCourse = await Course.create({
             ...courseDetails, 
-  pricing: Number(req.body.pricing),
+            pricing: Number(req.body.pricing),
         });
         if(!newlyCreatedCourse){
             return res.status(400).json({
@@ -148,17 +198,28 @@ const updateCourseController = async (req, res) => {
         }
         const courseDetails = req.body;
         if(!courseDetails){
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Course Details are Incorrect'
             })
+        }
+
+        if (courseDetails.isPublished) {
+          const canPublish = validateCourseBeforePublish(courseDetails);
+          if (!canPublish) {
+            return res.status(400).json({
+              success: false,
+              message:
+                'Cannot publish course without at least one lecture with a title and video.',
+            });
+          }
         }
 
         const updatedCourseDetails = await Course.findByIdAndUpdate(id, courseDetails, 
   { new: true, runValidators: true });
 
         if(!updatedCourseDetails){
-            res.status(400).json({
+            return res.status(400).json({
                 success: false,
                 message: 'Course Updation Failed'
             })
@@ -190,18 +251,28 @@ const togglePublishCourseController = async (req, res) => {
       });
     }
 
-    const updatedCourse = await Course.findByIdAndUpdate(
-      id,
-      { isPublished },
-      { new: true }
-    );
-
-    if (!updatedCourse) {
+    // Fetch the existing course for validation
+    const existingCourse = await Course.findById(id);
+    if (!existingCourse) {
       return res.status(404).json({
         success: false,
         message: "Course not found",
       });
     }
+
+    if (isPublished) {
+      const canPublish = validateCourseBeforePublish(existingCourse);
+      if (!canPublish) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Cannot publish course without a complete course setup (metadata + at least one lecture with video).",
+        });
+      }
+    }
+
+    existingCourse.isPublished = isPublished;
+    const updatedCourse = await existingCourse.save();
 
     return res.status(200).json({
       success: true,

@@ -7,23 +7,23 @@ const getAllCoursesToStudentView = async (req, res) => {
       category = [],
       level = [],
       primaryLanguage = [],
-      sortBy = "price-lowToHigh",
-      search = "",
-    } = req.query;
+    instructorId = "",
+    sortBy = "price-lowToHigh",
+    search = "",
+  } = req.query;
 
-    let filters = {isPublished:true,};
-    if (category && category.length) {
-      filters.category = { $in: category.split(",") };
-    }
-    if (level && level.length) {
-      filters.level = { $in: level.split(",") };
-    }
-    if (primaryLanguage && primaryLanguage.length) {
-      filters.primaryLanguage = { $in: primaryLanguage.split(",") };
-    }
-
-    if (search && search.trim().length > 0) {
-      const regex = new RegExp(search.trim(), "i");
+  let filters = { isPublished: true };
+  if (category && category.length) {
+    filters.category = { $in: category.split(",") };
+  }
+  if (level && level.length) {
+    filters.level = { $in: level.split(",") };
+  }
+  if (primaryLanguage && primaryLanguage.length) {
+    filters.primaryLanguage = { $in: primaryLanguage.split(",") };
+  }
+  if (instructorId && instructorId.trim().length) {
+    filters["instructor.instructorId"] = instructorId;
       filters.$or = [{ title: regex }, { description: regex }];
     }
 

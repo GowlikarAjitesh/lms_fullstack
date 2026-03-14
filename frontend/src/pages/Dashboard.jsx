@@ -20,6 +20,7 @@ export default function Dashboard() {
   const userName = userDetails?.username || "User";
   const userEmail = userDetails?.email || "No email available";
   const userRole = (userDetails?.role || "student").toLowerCase();
+  const profileImage = userDetails?.profileImage || "";
 
   const initials = useMemo(() => {
     return (
@@ -71,7 +72,7 @@ export default function Dashboard() {
             title: "My Learning",
             description: "Open your purchased courses and track progress.",
             icon: BookOpen,
-            action: () => navigate("/student-courses"),
+            action: () => navigate("/my-courses"),
           },
           {
             title: "Profile",
@@ -94,9 +95,19 @@ export default function Dashboard() {
         <Card className="border shadow-sm">
           <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 p-6">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
-                {initials}
-              </div>
+                
+                    
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt={userName}
+                  className="h-16 w-16 rounded-full object-cover border"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
+                  {initials}
+                </div>
+              )}
 
               <div>
                 <h1 className="text-3xl font-bold">Welcome, {userName}</h1>

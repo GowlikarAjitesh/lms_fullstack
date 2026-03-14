@@ -19,6 +19,22 @@ const UserSchema = new mongoose.Schema({
         type: String,
         enum: ['user', 'instructor', 'admin'], //only allow user or admin roles.
         default: 'user'
+    },
+    profileImage: {
+        type: String,
+        default: "",
+    },
+    profileImagePublicId: {
+        type: String,
+        default: "",
+    },
+    bio: {
+        type: String,
+        default: "",
+    },
+    phone: {
+        type: String,
+        default: "",
     }
 
 }, {timestamps: true});

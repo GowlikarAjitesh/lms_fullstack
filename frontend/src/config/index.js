@@ -118,6 +118,7 @@ export const courseLandingInitialFormData = {
   welcomeMessage: "",
   tags: "",
   image: "",
+  imagePublicId: "",
 };
 
 export const courseCuriculumInitialFormData = [
