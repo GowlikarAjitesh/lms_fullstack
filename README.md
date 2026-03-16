@@ -3,6 +3,9 @@
 A **Learning Management System (LMS)** built with the **MERN stack** to showcase full‑stack development skills.  
 This project demonstrates **authentication, role‑based access, course management, and responsive UI**.
 
+## Demo Link: https://youtu.be/U-LuV3jjXbw?si=b2VHdniiEM-tT8AZ
+## Live Link: https://lms-by-ajitesh.netlify.app/
+
 ---
 
 ## 🚀 Tech Stack
